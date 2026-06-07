@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: avry-admin-dashboard
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: 1
+      PORT: 3001
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8081
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
