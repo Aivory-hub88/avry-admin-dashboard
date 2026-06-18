@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Inter_Tight } from "next/font/google";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 import "flatpickr/dist/flatpickr.css";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-const interTight = Inter_Tight({
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-inter-tight",
+  variable: "--font-manrope",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${interTight.variable} font-inter-tight bg-[#353531]`}>
+      <body className={`${manrope.variable} font-manrope bg-[#353531]`}>
         <AuthProvider>
           <SidebarProvider>{children}</SidebarProvider>
         </AuthProvider>
