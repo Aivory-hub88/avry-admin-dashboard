@@ -7,7 +7,7 @@ import ScreeningQuestionBuilder, {
 } from "./ScreeningQuestionBuilder";
 
 const CAREERS_SERVICE_URL =
-  process.env.NEXT_PUBLIC_CAREERS_URL ?? "http://localhost:8090";
+  "";
 
 const EMPLOYMENT_TYPES = [
   { value: "full-time", label: "Full-time" },
@@ -128,7 +128,7 @@ export default function VacancyEditor({
     try {
       const token = getCookie("aivory_access_token");
       const res = await fetch(
-        `${CAREERS_SERVICE_URL}/api/admin/vacancies/${vacancyId}`,
+        `/admin/api/admin/careers/vacancies/${vacancyId}`,
         {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -220,8 +220,8 @@ export default function VacancyEditor({
       };
 
       const url = isEditMode
-        ? `${CAREERS_SERVICE_URL}/api/admin/vacancies/${editingVacancyId}`
-        : `${CAREERS_SERVICE_URL}/api/admin/vacancies`;
+        ? `/admin/api/admin/careers/vacancies/${editingVacancyId}`
+        : `/admin/api/admin/careers/vacancies`;
 
       const method = isEditMode ? "PUT" : "POST";
 

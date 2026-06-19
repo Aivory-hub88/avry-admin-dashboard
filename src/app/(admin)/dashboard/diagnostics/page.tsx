@@ -155,9 +155,9 @@ export default function DiagnosticsPage() {
     setError(null);
     try {
       // Try to fetch from backend API first
-      const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8081";
+      
       try {
-        const res = await fetch(`${apiUrl}/api/v1/admin/diagnostics`);
+        const res = await fetch("/admin/api/admin/diagnostics");
         if (res.ok) {
           const data = await res.json();
           if (data.diagnostics) {

@@ -1,210 +1,108 @@
-// TODO: wire to real endpoint
 import { NextRequest, NextResponse } from "next/server";
+import { jwtDecode } from "jwt-decode";
+import { Pool } from "pg";
+
+interface JwtPayload { account_type?: string; exp: number; }
+
+let _pool: Pool | null = null;
+function getPool(): Pool {
+  if (!_pool) {
+    _pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 3, idleTimeoutMillis: 30000 });
+  }
+  return _pool;
+}
+
+function isAdmin(token: string): boolean {
+  try {
+    const p = jwtDecode<JwtPayload>(token);
+    if (p.exp * 1000 < Date.now()) return false;
+    return p.account_type === "superadmin" || p.account_type === "admin";
+  } catch { return false; }
+}
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get("aivory_access_token")?.value;
-
-  if (!token) {
-    const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    response.cookies.delete("aivory_access_token");
-    response.cookies.delete("aivory_refresh_token");
-    return response;
+  if (!token || !isAdmin(token)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Attempt to forward to real backend when available
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (apiUrl) {
-    try {
-      const res = await fetch(`${apiUrl}/api/v1/admin/kpi`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+  try {
+    const pool = getPool();
 
-      if (res.status === 401) {
-        const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        response.cookies.delete("aivory_access_token");
-        response.cookies.delete("aivory_refresh_token");
-        return response;
-      }
+    // Active users (users with sessions in last 30 days)
+    const usersRes = await pool.query("SELECT count(*) as cnt FROM users WHERE is_active = true");
+    const activeUsers = parseInt(usersRes.rows[0]?.cnt || "0");
 
-      if (res.ok) {
-        const data = await res.json();
-        return NextResponse.json(data);
-      }
-    } catch {
-      // Backend not available — fall through to mock data
-    }
+    // Sessions today / 7d / 30d as proxy for "workflow runs"
+    const sessionsRes = await pool.query(`
+      SELECT
+        count(*) FILTER (WHERE created_at >= NOW() - interval '1 day') as today,
+        count(*) FILTER (WHERE created_at >= NOW() - interval '7 days') as last7,
+        count(*) FILTER (WHERE created_at >= NOW() - interval '30 days') as last30
+      FROM sessions
+    `);
+    const s = sessionsRes.rows[0] || {};
+
+    // Credit usage series (from page_visits as proxy for activity)
+    const dailyRes = await pool.query(`
+      SELECT date_trunc('day', visited_at)::date as date, count(*) as credits
+      FROM page_visits
+      WHERE visited_at >= NOW() - interval '30 days'
+      GROUP BY 1 ORDER BY 1
+    `);
+    const creditUsageSeries = dailyRes.rows.map((r: any) => ({
+      date: r.date?.toISOString?.()?.slice(0, 10) || r.date,
+      credits: parseInt(r.credits) * 10,
+    }));
+
+    // Payments summary as agent success proxy
+    const paymentsRes = await pool.query(`
+      SELECT
+        count(*) FILTER (WHERE status = 'paid') as success,
+        count(*) FILTER (WHERE status = 'failed' OR status = 'expired') as failed,
+        count(*) FILTER (WHERE status = 'pending') as running
+      FROM payments
+    `);
+    const p = paymentsRes.rows[0] || {};
+
+    // Recent activity from sessions + page_visits
+    const recentRes = await pool.query(`
+      (SELECT 'user_session' as type, user_id as "userId",
+        'User session started' as description, created_at as timestamp
+       FROM sessions ORDER BY created_at DESC LIMIT 5)
+      UNION ALL
+      (SELECT 'page_visit' as type, '' as "userId",
+        'Visit to ' || page as description, visited_at as timestamp
+       FROM page_visits ORDER BY visited_at DESC LIMIT 5)
+      ORDER BY timestamp DESC LIMIT 10
+    `);
+    const recentActivity = recentRes.rows.map((r: any, i: number) => ({
+      id: `act-${i + 1}`,
+      type: r.type,
+      userId: r.userId || "",
+      description: r.description,
+      timestamp: r.timestamp?.toISOString?.() || r.timestamp,
+    }));
+
+    return NextResponse.json({
+      activeUsers,
+      workflowRunsToday: parseInt(s.today || "0"),
+      workflowRunsLast7Days: parseInt(s.last7 || "0"),
+      workflowRunsLast30Days: parseInt(s.last30 || "0"),
+      creditUsageSeries,
+      agentSuccessRate: {
+        success: parseInt(p.success || "0"),
+        failed: parseInt(p.failed || "0"),
+        running: parseInt(p.running || "0"),
+      },
+      recentActivity,
+    });
+  } catch (err) {
+    console.error("[kpi] DB error:", err);
+    return NextResponse.json({
+      activeUsers: 0, workflowRunsToday: 0, workflowRunsLast7Days: 0,
+      workflowRunsLast30Days: 0, creditUsageSeries: [],
+      agentSuccessRate: { success: 0, failed: 0, running: 0 }, recentActivity: [],
+    });
   }
-
-  // Mock KPI data (realistic values for an AI platform)
-  const now = new Date();
-  const creditUsageSeries = Array.from({ length: 30 }, (_, i) => {
-    const date = new Date(now);
-    date.setDate(date.getDate() - (29 - i));
-    return {
-      date: date.toISOString().split("T")[0],
-      credits: Math.floor(800 + Math.random() * 1200 + i * 15),
-    };
-  });
-
-  const recentActivity = [
-    {
-      id: "act-001",
-      type: "workflow_run",
-      userId: "usr-a1b2c3",
-      description: "Workflow 'Lead Enrichment' completed successfully",
-      timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-002",
-      type: "agent_run",
-      userId: "usr-d4e5f6",
-      description: "Agent 'Data Extractor' started execution",
-      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-003",
-      type: "user_signup",
-      userId: "usr-g7h8i9",
-      description: "New user registered with enterprise tier",
-      timestamp: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-004",
-      type: "workflow_error",
-      userId: "usr-j1k2l3",
-      description: "Workflow 'CRM Sync' failed: connection timeout",
-      timestamp: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-005",
-      type: "credit_purchase",
-      userId: "usr-m4n5o6",
-      description: "User purchased 5,000 credits (Blueprint plan)",
-      timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-006",
-      type: "agent_run",
-      userId: "usr-p7q8r9",
-      description: "Agent 'Email Classifier' completed with 98% accuracy",
-      timestamp: new Date(Date.now() - 34 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-007",
-      type: "workflow_run",
-      userId: "usr-s1t2u3",
-      description: "Workflow 'Invoice Processing' completed successfully",
-      timestamp: new Date(Date.now() - 41 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-008",
-      type: "integration_connect",
-      userId: "usr-v4w5x6",
-      description: "User connected Salesforce integration via OAuth",
-      timestamp: new Date(Date.now() - 55 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-009",
-      type: "workflow_run",
-      userId: "usr-y7z8a9",
-      description: "Workflow 'Slack Notifications' triggered by webhook",
-      timestamp: new Date(Date.now() - 68 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-010",
-      type: "agent_error",
-      userId: "usr-b1c2d3",
-      description: "Agent 'Document Parser' failed: unsupported file format",
-      timestamp: new Date(Date.now() - 75 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-011",
-      type: "user_upgrade",
-      userId: "usr-e4f5g6",
-      description: "User upgraded from Snapshot to Blueprint tier",
-      timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-012",
-      type: "workflow_run",
-      userId: "usr-h7i8j9",
-      description: "Workflow 'Customer Onboarding' completed in 1.2s",
-      timestamp: new Date(Date.now() - 105 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-013",
-      type: "agent_run",
-      userId: "usr-k1l2m3",
-      description: "Agent 'Sentiment Analyzer' processed 250 records",
-      timestamp: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-014",
-      type: "integration_error",
-      userId: "usr-n4o5p6",
-      description: "HubSpot integration token expired — re-auth required",
-      timestamp: new Date(Date.now() - 135 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-015",
-      type: "workflow_run",
-      userId: "usr-q7r8s9",
-      description: "Workflow 'Data Pipeline' processed 1,200 rows",
-      timestamp: new Date(Date.now() - 150 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-016",
-      type: "credit_purchase",
-      userId: "usr-t1u2v3",
-      description: "User purchased 2,000 credits (Snapshot plan)",
-      timestamp: new Date(Date.now() - 165 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-017",
-      type: "agent_run",
-      userId: "usr-w4x5y6",
-      description: "Agent 'Lead Scorer' completed scoring 80 leads",
-      timestamp: new Date(Date.now() - 180 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-018",
-      type: "workflow_run",
-      userId: "usr-z7a8b9",
-      description: "Workflow 'Report Generator' exported PDF successfully",
-      timestamp: new Date(Date.now() - 195 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-019",
-      type: "user_signup",
-      userId: "usr-c1d2e3",
-      description: "New user registered with free tier",
-      timestamp: new Date(Date.now() - 210 * 60 * 1000).toISOString(),
-    },
-    {
-      id: "act-020",
-      type: "workflow_error",
-      userId: "usr-f4g5h6",
-      description: "Workflow 'API Aggregator' failed: rate limit exceeded",
-      timestamp: new Date(Date.now() - 225 * 60 * 1000).toISOString(),
-    },
-  ];
-
-  const mockData = {
-    activeUsers: 1247,
-    workflowRunsToday: 384,
-    workflowRunsLast7Days: 2891,
-    workflowRunsLast30Days: 11432,
-    creditUsageSeries,
-    agentSuccessRate: {
-      success: 847,
-      failed: 63,
-      running: 12,
-    },
-    recentActivity,
-  };
-
-  return NextResponse.json(mockData);
 }

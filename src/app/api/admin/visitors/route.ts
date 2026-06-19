@@ -1,68 +1,68 @@
+/**
+ * /api/admin/visitors — aggregated visit metrics from PostgreSQL.
+ * Auth: requires admin cookie.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
+import { Pool } from "pg";
+import { aggregateVisits, VisitRange, VisitRow } from "@/lib/aggregateVisits";
 
 interface JwtPayload {
-  user_id?: string;
-  email?: string;
   account_type?: string;
   exp: number;
 }
 
-const BACKEND_URL = process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
+let _pool: Pool | null = null;
+function getPool(): Pool {
+  if (!_pool) {
+    _pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 3,
+      idleTimeoutMillis: 30000,
+    });
+  }
+  return _pool;
+}
 
-function getAuth(request: NextRequest): { token: string; payload: JwtPayload } | null {
-  const token = request.cookies.get("aivory_access_token")?.value;
-  if (!token) return null;
+function isAdmin(token: string): boolean {
   try {
-    const payload = jwtDecode<JwtPayload>(token);
-    if (payload.exp * 1000 < Date.now()) return null;
-    const role = payload.account_type;
-    if (role !== "superadmin" && role !== "admin") return null;
-    return { token, payload };
+    const p = jwtDecode<JwtPayload>(token);
+    if (p.exp * 1000 < Date.now()) return false;
+    return p.account_type === "superadmin" || p.account_type === "admin";
   } catch {
-    return null;
+    return false;
   }
 }
 
-function isSuperAdmin(payload: JwtPayload): boolean {
-  return payload.account_type === "superadmin";
-}
+const ALLOWED_RANGES: readonly VisitRange[] = ["7d", "30d", "all"];
 
 export async function GET(request: NextRequest) {
-  const auth = getAuth(request);
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const token = request.cookies.get("aivory_access_token")?.value;
+  if (!token || !isAdmin(token)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const range = request.nextUrl.searchParams.get("range") || "30d";
+  const rangeParam = request.nextUrl.searchParams.get("range");
+  let range: VisitRange = "30d";
+  if (rangeParam && ALLOWED_RANGES.includes(rangeParam as VisitRange)) {
+    range = rangeParam as VisitRange;
+  }
 
-  // Return realistic mock analytics — production would use a proper analytics DB
-  const now = Date.now();
-  const dayMs = 86400000;
-  const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
+  try {
+    const pool = getPool();
+    const { rows } = await pool.query<VisitRow>(
+      `SELECT page, country_code, country_name, visited_at::text
+       FROM page_visits
+       ORDER BY visited_at DESC`
+    );
 
-  const dailyVisits = Array.from({ length: days }, (_, i) => ({
-    date: new Date(now - (days - 1 - i) * dayMs).toISOString().slice(0, 10),
-    visits: Math.floor(Math.random() * 50) + 10,
-  }));
-
-  const totalVisits = dailyVisits.reduce((sum, d) => sum + d.visits, 0);
-
-  return NextResponse.json({
-    totalVisits,
-    uniqueVisitors: Math.floor(totalVisits * 0.7),
-    dailyVisits,
-    topPages: [
-      { page: "/", visits: Math.floor(totalVisits * 0.4) },
-      { page: "/product", visits: Math.floor(totalVisits * 0.2) },
-      { page: "/pricing", visits: Math.floor(totalVisits * 0.15) },
-      { page: "/blog", visits: Math.floor(totalVisits * 0.1) },
-      { page: "/careers", visits: Math.floor(totalVisits * 0.08) },
-    ],
-    topCountries: [
-      { country_code: "ID", country_name: "Indonesia", visits: Math.floor(totalVisits * 0.4) },
-      { country_code: "US", country_name: "United States", visits: Math.floor(totalVisits * 0.2) },
-      { country_code: "SG", country_name: "Singapore", visits: Math.floor(totalVisits * 0.1) },
-      { country_code: "MY", country_name: "Malaysia", visits: Math.floor(totalVisits * 0.08) },
-      { country_code: "GB", country_name: "United Kingdom", visits: Math.floor(totalVisits * 0.05) },
-    ],
-  });
+    const aggregate = aggregateVisits(rows, range, Date.now());
+    return NextResponse.json(aggregate);
+  } catch (err) {
+    console.error("[visitors] DB error:", err);
+    return NextResponse.json(
+      { error: "Database unavailable", totals: { allTime: 0, last7Days: 0, last30Days: 0, today: 0 }, byCountry: [], byPage: [], daily: [], uniqueCountries: 0 },
+      { status: 200 }
+    );
+  }
 }

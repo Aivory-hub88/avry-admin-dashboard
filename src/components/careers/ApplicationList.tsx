@@ -33,7 +33,7 @@ interface VacancyGroup {
 // --- Helpers ---
 
 const CAREERS_SERVICE_URL =
-  process.env.NEXT_PUBLIC_CAREERS_SERVICE_URL ?? "http://localhost:8090";
+  "";
 
 async function fetchWithAuth(path: string, options: RequestInit = {}) {
   const token = getCookie("aivory_access_token");
@@ -46,7 +46,7 @@ async function fetchWithAuth(path: string, options: RequestInit = {}) {
   if (!headers["Content-Type"] && options.method && options.method !== "GET") {
     headers["Content-Type"] = "application/json";
   }
-  return fetch(`${CAREERS_SERVICE_URL}${path}`, { ...options, headers });
+  return fetch(`/admin/api/admin/careers${path}`, { ...options, headers });
 }
 
 function formatDate(dateString: string): string {
@@ -108,7 +108,7 @@ function TagList({
 
     setSaving(true);
     try {
-      const res = await fetchWithAuth(`/api/admin/applications/${appId}/tags`, {
+      const res = await fetchWithAuth(`/admin/api/admin/careers/applications/${appId}/tags`, {
         method: "POST",
         body: JSON.stringify({ tag: trimmed }),
       });
@@ -217,7 +217,7 @@ function EmailDialog({
     setSending(true);
     setError("");
     try {
-      const res = await fetchWithAuth(`/api/admin/applications/${appId}/email`, {
+      const res = await fetchWithAuth(`/admin/api/admin/careers/applications/${appId}/email`, {
         method: "POST",
         body: JSON.stringify({ subject: subject.trim(), body: body.trim() }),
       });
@@ -319,7 +319,7 @@ export default function ApplicationList() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetchWithAuth("/api/admin/applications");
+      const res = await fetchWithAuth("/admin/api/admin/careers/applications");
       if (!res.ok) {
         throw new Error(`Failed to fetch applications (${res.status})`);
       }
@@ -359,7 +359,7 @@ export default function ApplicationList() {
     setActionLoading(appId);
     try {
       const res = await fetchWithAuth(
-        `/api/admin/applications/${appId}/status`,
+        `/admin/api/admin/careers/applications/${appId}/status`,
         {
           method: "PATCH",
           body: JSON.stringify({ status: newStatus }),
