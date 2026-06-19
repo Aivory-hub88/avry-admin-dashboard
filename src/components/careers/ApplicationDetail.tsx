@@ -130,7 +130,7 @@ export default function ApplicationDetail({
     setError("");
     try {
       const res = await fetchWithAuth(
-        `/admin/api/admin/careers/applications/${applicationId}`
+        `/applications/${applicationId}`
       );
       if (!res.ok) {
         throw new Error(`Failed to fetch application (${res.status})`);
@@ -191,7 +191,7 @@ export default function ApplicationDetail({
     setEmailSuccess("");
     try {
       const res = await fetchWithAuth(
-        `/admin/api/admin/careers/applications/${applicationId}/email`,
+        `/applications/${applicationId}/email`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -223,7 +223,7 @@ export default function ApplicationDetail({
     setTagError("");
     try {
       const res = await fetchWithAuth(
-        `/admin/api/admin/careers/applications/${applicationId}/tags`,
+        `/applications/${applicationId}/tags`,
         {
           method: "POST",
           body: JSON.stringify({ tag: newTag.trim() }),

@@ -108,7 +108,7 @@ function TagList({
 
     setSaving(true);
     try {
-      const res = await fetchWithAuth(`/admin/api/admin/careers/applications/${appId}/tags`, {
+      const res = await fetchWithAuth(`/applications/${appId}/tags`, {
         method: "POST",
         body: JSON.stringify({ tag: trimmed }),
       });
@@ -217,7 +217,7 @@ function EmailDialog({
     setSending(true);
     setError("");
     try {
-      const res = await fetchWithAuth(`/admin/api/admin/careers/applications/${appId}/email`, {
+      const res = await fetchWithAuth(`/applications/${appId}/email`, {
         method: "POST",
         body: JSON.stringify({ subject: subject.trim(), body: body.trim() }),
       });
@@ -319,7 +319,7 @@ export default function ApplicationList() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetchWithAuth("/admin/api/admin/careers/applications");
+      const res = await fetchWithAuth("/applications");
       if (!res.ok) {
         throw new Error(`Failed to fetch applications (${res.status})`);
       }
