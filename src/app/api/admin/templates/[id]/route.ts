@@ -1,53 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
+import { getAccessToken, proxyToService, unauthorized } from "@/lib/bff";
 
-interface JwtPayload {
-  user_id?: string;
-  email?: string;
-  account_type?: string;
-  exp: number;
-}
-
-const BACKEND_URL = process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
-
-function getAuth(request: NextRequest): { token: string; payload: JwtPayload } | null {
-  const token = request.cookies.get("aivory_access_token")?.value;
-  if (!token) return null;
-  try {
-    const payload = jwtDecode<JwtPayload>(token);
-    if (payload.exp * 1000 < Date.now()) return null;
-    const role = payload.account_type;
-    if (role !== "superadmin" && role !== "admin") return null;
-    return { token, payload };
-  } catch {
-    return null;
-  }
-}
-
-function isSuperAdmin(payload: JwtPayload): boolean {
-  return payload.account_type === "superadmin";
-}
-
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const auth = getAuth(request);
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+// PATCH /api/admin/templates/:id — update (proxies to backend PUT)
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const token = getAccessToken(request);
+  if (!token) return unauthorized();
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
-  return NextResponse.json({ ...body, id, updated_at: new Date().toISOString() });
+  const result = await proxyToService({ service: "backend", path: `/api/v1/templates/${id}`, method: "PUT", token, body });
+  return NextResponse.json(result.data ?? {}, { status: result.status || 200 });
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const auth = getAuth(request);
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!isSuperAdmin(auth.payload)) {
-    return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
-  }
+// DELETE /api/admin/templates/:id
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const token = getAccessToken(request);
+  if (!token) return unauthorized();
   const { id } = await params;
-  return NextResponse.json({ success: true, deleted: id });
+  const result = await proxyToService({ service: "backend", path: `/api/v1/templates/${id}`, method: "DELETE", token });
+  return NextResponse.json(result.data ?? { success: result.ok }, { status: result.status || 200 });
 }
