@@ -1,203 +1,86 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 
-/**
- * POST /api/admin/create
- * Create a new admin user (super admin only)
- */
-export async function POST(request: NextRequest) {
+interface JwtPayload {
+  user_id?: string;
+  email?: string;
+  account_type?: string;
+  exp: number;
+}
+
+const BACKEND_URL = process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
+
+function getAuth(request: NextRequest): { token: string; payload: JwtPayload } | null {
+  const token = request.cookies.get("aivory_access_token")?.value;
+  if (!token) return null;
   try {
-    // 1. Verify authentication and super admin status
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("sb-access-token")?.value;
+    const payload = jwtDecode<JwtPayload>(token);
+    if (payload.exp * 1000 < Date.now()) return null;
+    const role = payload.account_type;
+    if (role !== "superadmin" && role !== "admin") return null;
+    return { token, payload };
+  } catch {
+    return null;
+  }
+}
 
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: "Unauthorized: No access token" },
-        { status: 401 }
-      );
-    }
+function isSuperAdmin(payload: JwtPayload): boolean {
+  return payload.account_type === "superadmin";
+}
 
-    // Verify user is super admin
-    const { data: { user } } = await supabaseAdmin.auth.getUser(accessToken);
+function generatePassword(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let pw = "";
+  for (let i = 0; i < 16; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  return pw;
+}
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized: Invalid token" },
-        { status: 401 }
-      );
-    }
+export async function POST(request: NextRequest) {
+  const auth = getAuth(request);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isSuperAdmin(auth.payload)) {
+    return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
+  }
 
-    const accountType = user.user_metadata?.account_type;
+  const body = await request.json();
+  const { email, password, fullName, autoGeneratePassword } = body;
+  if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
-    if (accountType !== "superadmin") {
-      return NextResponse.json(
-        { error: "Forbidden: Only super admins can create admins" },
-        { status: 403 }
-      );
-    }
+  const finalPassword = autoGeneratePassword ? generatePassword() : password;
+  if (!finalPassword) return NextResponse.json({ error: "Password required" }, { status: 400 });
 
-    // 2. Parse request body
-    const body = await request.json();
-    const { email, password, fullName, autoGeneratePassword = false } = body;
-
-    // 3. Validate inputs
-    if (!email || !fullName) {
-      return NextResponse.json(
-        { error: "Email and full name are required" },
-        { status: 400 }
-      );
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
-    }
-
-    // Validate or generate password
-    let finalPassword = password;
-    if (autoGeneratePassword) {
-      finalPassword = generateStrongPassword();
-    } else {
-      if (!password) {
-        return NextResponse.json(
-          { error: "Password is required" },
-          { status: 400 }
-        );
-      }
-      const passwordValidation = validatePassword(password);
-      if (!passwordValidation.valid) {
-        return NextResponse.json(
-          { error: passwordValidation.message },
-          { status: 400 }
-        );
-      }
-    }
-
-    // 4. Create user with Supabase Admin API using auth.admin.createUser
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password: finalPassword,
-      email_confirm: true, // Auto-confirm email so admin can login immediately
-      user_metadata: {
-        account_type: "admin",
-        permissions: [],
-        created_by: user.email,
-        created_at: new Date().toISOString(),
-        full_name: fullName,
-      },
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/v1/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        password: finalPassword,
+        company_name: fullName || email.split("@")[0],
+      }),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return NextResponse.json({ error: err.detail || "Failed to create" }, { status: res.status });
+    }
+    const data = await res.json();
+    const userId = data.user?.user_id;
 
-    if (createError) {
-      console.error("Error creating admin:", createError);
-      
-      if (createError.message?.includes("duplicate")) {
-        return NextResponse.json(
-          { error: "Email already exists" },
-          { status: 409 }
-        );
-      }
-
-      return NextResponse.json(
-        { error: "Failed to create admin user" },
-        { status: 500 }
-      );
+    // Promote to admin via backend
+    if (userId) {
+      await fetch(`${BACKEND_URL}/api/v1/admin/promote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
+        body: JSON.stringify({ user_id: userId, account_type: "admin" }),
+      }).catch(() => {});
     }
 
-    // 5. Return success response
     return NextResponse.json({
       success: true,
-      user: {
-        id: newUser.user.id,
-        email: newUser.user.email,
-        user_metadata: newUser.user.user_metadata,
-      },
+      user: { id: userId, email },
       autoGeneratedPassword: autoGeneratePassword ? finalPassword : undefined,
     });
-
-  } catch (error) {
-    console.error("Unexpected error in create admin:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+  } catch (err) {
+    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
-}
-
-/**
- * Generate a strong random password
- */
-function generateStrongPassword(): string {
-  const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const lowercase = "abcdefghijklmnopqrstuvwxyz";
-  const numbers = "0123456789";
-  const special = "!@#$%^&*()_+-=[]{}|;:,.<>?";
-
-  const allChars = uppercase + lowercase + numbers + special;
-  let password = "";
-
-  // Ensure at least one of each required character type
-  password += uppercase[Math.floor(Math.random() * uppercase.length)];
-  password += lowercase[Math.floor(Math.random() * lowercase.length)];
-  password += numbers[Math.floor(Math.random() * numbers.length)];
-  password += special[Math.floor(Math.random() * special.length)];
-
-  // Fill remaining characters (total 16 chars)
-  for (let i = password.length; i < 16; i++) {
-    password += allChars[Math.floor(Math.random() * allChars.length)];
-  }
-
-  // Shuffle the password
-  return password
-    .split("")
-    .sort(() => Math.random() - 0.5)
-    .join("");
-}
-
-/**
- * Validate password strength
- */
-function validatePassword(password: string): {
-  valid: boolean;
-  message?: string;
-} {
-  if (password.length < 8) {
-    return {
-      valid: false,
-      message: "Password must be at least 8 characters long",
-    };
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    return {
-      valid: false,
-      message: "Password must contain at least one uppercase letter",
-    };
-  }
-
-  if (!/[a-z]/.test(password)) {
-    return {
-      valid: false,
-      message: "Password must contain at least one lowercase letter",
-    };
-  }
-
-  if (!/[0-9]/.test(password)) {
-    return {
-      valid: false,
-      message: "Password must contain at least one number",
-    };
-  }
-
-  if (!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) {
-    return {
-      valid: false,
-    message: "Password must contain at least one special character (!@#$%^&*()_+-=[]{}|;:,.<>?)",
-    };
-  }
-
-  return { valid: true };
 }

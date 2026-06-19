@@ -72,10 +72,10 @@ export default function IntegrationsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/integrations");
+      const res = await fetch("/admin/api/admin/integrations");
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = "/login";
+          window.location.href = "/admin/signin";
           return;
         }
         throw new Error(`Failed to load integrations (${res.status})`);

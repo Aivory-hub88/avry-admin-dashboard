@@ -28,10 +28,10 @@ export default function TemplatesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/templates");
+      const res = await fetch("/admin/api/admin/templates");
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = "/login";
+          window.location.href = "/admin/signin";
           return;
         }
         throw new Error(`Failed to load templates (${res.status})`);

@@ -19,7 +19,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen overflow-hidden" style={{ background: "#353531" }}>
       <AppSidebar unreadReports={unreadReports} />
 
-      {/* Main content — offset by sidebar width on desktop */}
       <div
         className="flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300"
         style={{ marginLeft: `${sidebarWidth}px` }}

@@ -21,15 +21,16 @@ export function setCookie(
   if (options.maxAge) cookie += `; max-age=${options.maxAge}`;
   cookie += `; path=${options.path ?? "/"}`;
   
-  // Use provided domain or default to root domain for cross-subdomain access
-  cookie += `; domain=${options.domain ?? ".aivory.id"}`;
+  // Only set domain if explicitly provided
+  if (options.domain) {
+    cookie += `; domain=${options.domain}`;
+  }
   
-  // Default to SameSite=None;Secure for authentication cookies (cross-domain support)
-  // For same-site cookies, explicitly pass sameSite: "Lax" or sameSite: "Strict"
-  cookie += `; SameSite=${options.sameSite ?? "None"}`;
+  // Default to SameSite=Lax (works with HTTP IP access)
+  cookie += `; SameSite=${options.sameSite ?? "Lax"}`;
   
-  // Secure flag is required for SameSite=None
-  if (options.secure !== false) {
+  // Only add Secure flag if explicitly requested
+  if (options.secure) {
     cookie += "; Secure";
   }
   

@@ -33,7 +33,7 @@ export function DeactivateModal({
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/admin/${adminId}/deactivate`, {
+      const response = await fetch(`/admin/api/admin/${adminId}/deactivate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export function DeactivateModal({
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/admin/${adminId}/deactivate`, {
+      const response = await fetch(`/admin/api/admin/${adminId}/deactivate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

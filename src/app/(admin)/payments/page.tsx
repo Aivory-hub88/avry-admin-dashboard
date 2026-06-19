@@ -101,10 +101,10 @@ export default function PaymentsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/payments");
+      const res = await fetch("/admin/api/admin/payments");
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = "/login";
+          window.location.href = "/admin/signin";
           return;
         }
         throw new Error(`Failed to load payments (${res.status})`);
@@ -161,7 +161,7 @@ export default function PaymentsPage() {
 
     const paymentMethod = prompt("Enter Payment Method:", "manual");
 
-    fetch("/api/admin/payments", {
+    fetch("/admin/api/admin/payments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

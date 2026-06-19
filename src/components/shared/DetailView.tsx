@@ -21,7 +21,7 @@ export default function DetailView({ title, recordType, recordId, data, onClose 
   const handleReport = async () => {
     setReportStatus("sending");
     try {
-      const res = await fetch("/api/admin/reports", {
+      const res = await fetch("/admin/api/admin/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

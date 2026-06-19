@@ -31,7 +31,7 @@ function SignInFormInner() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/admin/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -68,16 +68,14 @@ function SignInFormInner() {
       }
 
       setCookie("aivory_access_token", access_token, { 
-        maxAge: 900,
-        domain: ".aivory.id",
-        sameSite: "None",
-        secure: true
+        maxAge: 3600,
+        domain: undefined,
+        sameSite: "Lax",
       });
       setCookie("aivory_refresh_token", refresh_token, { 
         maxAge: 604800,
-        domain: ".aivory.id",
-        sameSite: "None",
-        secure: true
+        domain: undefined,
+        sameSite: "Lax",
       });
 
       router.push("/dashboard");

@@ -42,7 +42,7 @@ export default function AdminAccountsPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/admin/list");
+      const response = await fetch("/admin/api/admin/list");
       const data = await response.json();
 
       if (!response.ok) {

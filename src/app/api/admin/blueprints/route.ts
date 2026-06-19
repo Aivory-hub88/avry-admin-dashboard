@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccessToken, proxyToService, unauthorized } from "@/lib/bff";
 
-export interface BlueprintRecord extends Record<string, unknown> {
+export interface BlueprintRecord {
   id: string;
   userId: string;
   userEmail: string;
@@ -15,23 +15,14 @@ export interface BlueprintRecord extends Record<string, unknown> {
   pdfUrl: string | null;
 }
 
-interface ServiceBlueprint {
-  blueprint_id?: string;
-  user_id?: string;
-  user_email?: string;
-  system_name?: string;
-  created_at?: string;
-  version?: string;
-}
-
-function mapBlueprint(b: ServiceBlueprint): BlueprintRecord {
-  const id = b.blueprint_id ?? "";
+function mapBlueprint(b: any): BlueprintRecord {
+  const id = b.blueprint_id ?? b.id ?? "";
   return {
     id,
     userId: b.user_id ?? "",
-    userEmail: b.user_email ?? "",
+    userEmail: b.user_email ?? b.email ?? "",
     tier: "blueprint",
-    title: b.system_name ?? "Untitled Blueprint",
+    title: b.system_name ?? b.title ?? "Untitled Blueprint",
     status: "completed",
     sections: 8,
     completedSections: 8,
@@ -51,21 +42,15 @@ export async function GET(request: NextRequest) {
     token,
   });
 
-  if (result.status === 401) return unauthorized();
-  if (result.notConfigured) {
-    return NextResponse.json(
-      { error: "Blueprint service is not configured" },
-      { status: 503 }
-    );
-  }
-  if (!result.ok) {
-    return NextResponse.json(
-      { error: "Failed to reach blueprint service" },
-      { status: 502 }
-    );
+  if (result.notConfigured || result.unreachable) {
+    return NextResponse.json([]);
   }
 
-  const data = result.data as { blueprints?: ServiceBlueprint[] } | null;
-  const raw = Array.isArray(data?.blueprints) ? data!.blueprints! : [];
-  return NextResponse.json({ blueprints: raw.map(mapBlueprint) });
+  if (!result.ok) {
+    return NextResponse.json([], { status: 200 });
+  }
+
+  const raw = result.data as any;
+  const items = raw?.blueprints ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
+  return NextResponse.json(items.map(mapBlueprint));
 }

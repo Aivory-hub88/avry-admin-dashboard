@@ -171,10 +171,10 @@ export default function DiagnosticsPage() {
       }
 
       // Fallback to frontend API
-      const res = await fetch("/api/admin/diagnostics");
+      const res = await fetch("/admin/api/admin/diagnostics");
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = "/login";
+          window.location.href = "/admin/signin";
           return;
         }
         throw new Error(`Failed to load diagnostics (${res.status})`);

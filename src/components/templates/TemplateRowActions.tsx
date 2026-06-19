@@ -26,7 +26,7 @@ export default function TemplateRowActions({
     setBusy("toggle");
     setError(null);
     try {
-      const res = await fetch(`/api/admin/templates/${template.id}`, {
+      const res = await fetch(`/admin/api/admin/templates/${template.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
@@ -53,7 +53,7 @@ export default function TemplateRowActions({
     setBusy("delete");
     setError(null);
     try {
-      const res = await fetch(`/api/admin/templates/${template.id}`, {
+      const res = await fetch(`/admin/api/admin/templates/${template.id}`, {
         method: "DELETE",
       });
       if (!res.ok) {

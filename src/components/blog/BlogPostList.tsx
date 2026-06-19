@@ -31,7 +31,7 @@ interface BlogPostListProps {
 }
 
 const BLOG_SERVICE_URL =
-  process.env.NEXT_PUBLIC_BLOG_SERVICE_URL ?? "http://localhost:8089";
+  "";
 
 export default function BlogPostList({
   posts,
@@ -53,7 +53,7 @@ export default function BlogPostList({
   const handleDelete = async (post: BlogPostListItem) => {
     setActionLoading(post.id);
     try {
-      const res = await fetch(`${BLOG_SERVICE_URL}/api/admin/posts/${post.id}`, {
+      const res = await fetch(`/admin/api/admin/blog/api/admin/posts/${post.id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
@@ -72,7 +72,7 @@ export default function BlogPostList({
     setActionLoading(post.id);
     try {
       const res = await fetch(
-        `${BLOG_SERVICE_URL}/api/admin/posts/${post.id}/status`,
+        `/admin/api/admin/blog/api/admin/posts/${post.id}/status`,
         {
           method: "PATCH",
           headers: {

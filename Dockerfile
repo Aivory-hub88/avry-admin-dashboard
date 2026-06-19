@@ -30,7 +30,7 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
     NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 # Force Node to prefer IPv4 — Next.js font loader (undici) defaults to IPv6,
 # which is not routable in the Docker build network and causes font fetch to fail.
-ENV NODE_OPTIONS=--dns-result-order=ipv4first
+ENV NODE_OPTIONS="--dns-result-order=ipv4first --max-old-space-size=4096"
 
 RUN npm run build
 
@@ -57,9 +57,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 9002
 
-ENV PORT=3000
+ENV PORT=9002
 # set hostname to localhost
 ENV HOSTNAME="0.0.0.0"
 

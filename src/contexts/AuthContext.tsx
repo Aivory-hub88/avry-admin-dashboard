@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     const refreshToken = getCookie("aivory_refresh_token");
     try {
-      await fetch("/api/auth/logout", {
+      await fetch("/admin/api/auth/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken ?? "" }),
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       deleteCookie("aivory_access_token");
       deleteCookie("aivory_refresh_token");
       setUser(null);
-      window.location.href = "/login";
+      window.location.href = "/admin/signin";
     }
   };
 

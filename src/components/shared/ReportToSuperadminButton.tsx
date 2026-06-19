@@ -26,7 +26,7 @@ export default function ReportToSuperadminButton({
   const handleSubmit = async () => {
     setStatus("sending");
     try {
-      const res = await fetch("/api/admin/reports", {
+      const res = await fetch("/admin/api/admin/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

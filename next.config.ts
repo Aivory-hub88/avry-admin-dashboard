@@ -16,6 +16,8 @@ if (!process.env.NEXT_PUBLIC_API_URL) {
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  basePath: "/admin",
+  assetPrefix: "/admin",
   reactStrictMode: true,
   webpack(config) {
     config.module.rules.push({

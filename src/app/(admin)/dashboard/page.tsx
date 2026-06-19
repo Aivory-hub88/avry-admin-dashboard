@@ -35,10 +35,10 @@ export default function DashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/kpi");
+      const res = await fetch("/admin/api/admin/kpi");
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = "/login";
+          window.location.href = "/admin/signin";
           return;
         }
         throw new Error(`Failed to load KPI data (${res.status})`);

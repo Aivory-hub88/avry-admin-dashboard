@@ -23,7 +23,7 @@ export async function apiFetch<T = unknown>(
     deleteCookie("aivory_access_token");
     deleteCookie("aivory_refresh_token");
     if (typeof window !== "undefined") {
-      window.location.href = "/login";
+      window.location.href = "/admin/signin";
     }
     throw new Error("Unauthorized");
   }

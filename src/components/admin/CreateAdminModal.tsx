@@ -104,7 +104,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
     }
 
     try {
-      const response = await fetch("/api/admin/create", {
+      const response = await fetch("/admin/api/admin/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

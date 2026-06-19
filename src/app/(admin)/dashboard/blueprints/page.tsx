@@ -98,10 +98,10 @@ export default function BlueprintsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/blueprints");
+      const res = await fetch("/admin/api/admin/blueprints");
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = "/login";
+          window.location.href = "/admin/signin";
           return;
         }
         throw new Error(`Failed to load blueprints (${res.status})`);

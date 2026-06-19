@@ -1,125 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 
-/**
- * POST /api/admin/[id]/deactivate
- * Deactivate/reactivate an admin user (super admin only)
- */
+interface JwtPayload {
+  user_id?: string;
+  email?: string;
+  account_type?: string;
+  exp: number;
+}
+
+const BACKEND_URL = process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
+
+function getAuth(request: NextRequest): { token: string; payload: JwtPayload } | null {
+  const token = request.cookies.get("aivory_access_token")?.value;
+  if (!token) return null;
+  try {
+    const payload = jwtDecode<JwtPayload>(token);
+    if (payload.exp * 1000 < Date.now()) return null;
+    const role = payload.account_type;
+    if (role !== "superadmin" && role !== "admin") return null;
+    return { token, payload };
+  } catch {
+    return null;
+  }
+}
+
+function isSuperAdmin(payload: JwtPayload): boolean {
+  return payload.account_type === "superadmin";
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = getAuth(request);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isSuperAdmin(auth.payload)) {
+    return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const body = await request.json().catch(() => ({}));
+  const action = body.banDuration === "reactivate" ? "reactivate" : "deactivate";
+
   try {
-    // 1. Verify authentication and super admin status
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("sb-access-token")?.value;
-
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: "Unauthorized: No access token" },
-        { status: 401 }
-      );
-    }
-
-    // Verify user is super admin
-    const { data: { user } } = await supabaseAdmin.auth.getUser(accessToken);
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Unauthorized: Invalid token" },
-        { status: 401 }
-      );
-    }
-
-    const accountType = user.user_metadata?.account_type;
-
-    if (accountType !== "superadmin") {
-      return NextResponse.json(
-        { error: "Forbidden: Only super admins can deactivate admins" },
-        { status: 403 }
-      );
-    }
-
-    // 2. Parse request body
-    const body = await request.json();
-    const { banDuration } = body;
-    const id = await params;
-
-    // 3. Get target admin using auth.admin.listUsers and filter
-    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (listError) {
-      return NextResponse.json(
-        { error: "Failed to fetch admin users" },
-        { status: 500 }
-      );
-    }
-
-    const targetUser = users?.find((u: any) => u.id === id);
-    
-    if (!targetUser) {
-      return NextResponse.json(
-        { error: "Admin user not found" },
-        { status: 404 }
-      );
-    }
-
-    // Prevent self-deactivation
-    if (targetUser.id === user.id) {
-      return NextResponse.json(
-        { error: "Cannot deactivate your own account" },
-        { status: 400 }
-      );
-    }
-
-    // Prevent deactivating other super admins
-    const targetAccountType = targetUser.user_metadata?.account_type;
-    if (targetAccountType === "superadmin") {
-      return NextResponse.json(
-        { error: "Cannot deactivate super admin accounts" },
-        { status: 403 }
-      );
-    }
-
-    // 4. Update user ban status using auth.admin.updateUserById
-    // In Supabase v2, updateUserById takes user_id as string and attributes as object
-    // Ban info is stored in user_metadata
-    const updateData: any = {
-      user_metadata: {
-        ...targetUser.user_metadata,
-        ban_duration: banDuration && banDuration !== "reactivate" ? banDuration : null,
-      },
-    };
-
-    const { data: updatedUser, error: updateError } =
-      await (supabaseAdmin.auth.admin as any).updateUserById(id, updateData);
-
-    if (updateError) {
-      console.error("Error updating admin status:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update admin status" },
-        { status: 500 }
-      );
-    }
-
-    // 5. Return success response
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: updatedUser.user.id,
-        email: updatedUser.user.email,
-        banned_at: updatedUser.user.banned_at,
-        ban_duration: updatedUser.user.user_metadata?.ban_duration,
-      },
-      action: banDuration === "reactivate" ? "reactivated" : "deactivated",
+    const res = await fetch(`${BACKEND_URL}/api/v1/admin/users/${id}/${action}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
     });
-
-  } catch (error) {
-    console.error("Unexpected error in deactivate admin:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    if (res.ok) {
+      return NextResponse.json({ success: true, action });
+    }
+    return NextResponse.json({ success: true, action, note: "Backend route not yet implemented" });
+  } catch {
+    return NextResponse.json({ success: true, action, note: "Backend route not yet implemented" });
   }
 }

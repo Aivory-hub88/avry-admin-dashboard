@@ -142,10 +142,10 @@ export default function RoadmapPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/roadmap");
+      const res = await fetch("/admin/api/admin/roadmap");
       if (!res.ok) {
         if (res.status === 401) {
-          window.location.href = "/login";
+          window.location.href = "/admin/signin";
           return;
         }
         throw new Error(`Failed to load roadmap (${res.status})`);

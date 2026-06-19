@@ -70,7 +70,7 @@ function CreateAdminModal({ onClose, onSuccess }: CreateAdminModalProps) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/admin-accounts", {
+      const res = await fetch("/admin/api/admin/admin-accounts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -250,7 +250,7 @@ function AdminAccountsTable({ currentUserEmail }: AdminAccountsTableProps) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/admin-accounts");
+      const res = await fetch("/admin/api/admin/admin-accounts");
       if (!res.ok) throw new Error(`Failed to load admin accounts (${res.status})`);
       const data = await res.json();
       setAccounts(data.accounts ?? []);
@@ -268,7 +268,7 @@ function AdminAccountsTable({ currentUserEmail }: AdminAccountsTableProps) {
   const handleAction = async (id: string, action: "suspend" | "reactivate") => {
     setActionLoading(id);
     try {
-      const res = await fetch(`/api/admin/admin-accounts/${id}/${action}`, {
+      const res = await fetch(`/admin/api/admin/admin-accounts/${id}/${action}`, {
         method: "PATCH",
       });
       if (res.ok) {

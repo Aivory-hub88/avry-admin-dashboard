@@ -26,7 +26,7 @@ interface RedactionInterfaceProps {
 }
 
 const BLOG_SERVICE_URL =
-  process.env.NEXT_PUBLIC_BLOG_SERVICE_URL ?? "http://localhost:8089";
+  "";
 
 /**
  * Renders a preview string for a content block.
@@ -81,7 +81,7 @@ export default function RedactionInterface({
 
     try {
       const res = await fetch(
-        `${BLOG_SERVICE_URL}/api/admin/posts/${post.id}/redact`,
+        `/admin/api/admin/blog/api/admin/posts/${post.id}/redact`,
         {
           method: "PATCH",
           headers: {

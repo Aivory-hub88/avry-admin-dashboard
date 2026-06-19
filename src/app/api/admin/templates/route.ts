@@ -1,96 +1,64 @@
-/**
- * /api/admin/templates — list + create
- *
- * Spec: admin-templates-visitors
- *   GET  — list all automation templates (any Admin_User)            (Req 3)
- *   POST — create a new automation template (any Admin_User)         (Req 4)
- *
- * Auth: requires `aivory_access_token` cookie. On missing/invalid token,
- * returns 401 and clears both auth cookies on the response (Req 18.2, 18.3).
- */
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { decodeJwt, getUserId, isTokenExpired } from "@/lib/jwt";
-import { validateCreatePayload } from "@/lib/templates";
+import { jwtDecode } from "jwt-decode";
 
-function unauthorized(): NextResponse {
-  const res = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  res.cookies.delete("aivory_access_token");
-  res.cookies.delete("aivory_refresh_token");
-  return res;
+interface JwtPayload {
+  user_id?: string;
+  email?: string;
+  account_type?: string;
+  exp: number;
 }
 
-export async function GET(request: NextRequest) {
+const BACKEND_URL = process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
+
+function getAuth(request: NextRequest): { token: string; payload: JwtPayload } | null {
   const token = request.cookies.get("aivory_access_token")?.value;
-  if (!token) return unauthorized();
+  if (!token) return null;
   try {
-    const payload = decodeJwt(token);
-    if (isTokenExpired(payload)) return unauthorized();
+    const payload = jwtDecode<JwtPayload>(token);
+    if (payload.exp * 1000 < Date.now()) return null;
+    const role = payload.account_type;
+    if (role !== "superadmin" && role !== "admin") return null;
+    return { token, payload };
   } catch {
-    return unauthorized();
+    return null;
   }
+}
 
-  const { data, error } = await supabaseAdmin
-    .from("automation_templates")
-    .select("*")
-    .order("created_at", { ascending: false });
+function isSuperAdmin(payload: JwtPayload): boolean {
+  return payload.account_type === "superadmin";
+}
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+// In-memory template store (production should use PostgreSQL)
+const templates: any[] = [
+  { id: "tpl-001", name: "Email Campaign Automation", description: "Automated email sequences", category: "marketing", tags: ["email", "drip"], status: "active", workflow_json: {}, created_at: "2025-01-15T10:00:00Z" },
+  { id: "tpl-002", name: "Lead Scoring Pipeline", description: "Score and route leads automatically", category: "sales", tags: ["leads", "scoring"], status: "active", workflow_json: {}, created_at: "2025-02-01T08:00:00Z" },
+  { id: "tpl-003", name: "Customer Onboarding", description: "Automated onboarding workflow", category: "operations", tags: ["onboarding", "welcome"], status: "draft", workflow_json: {}, created_at: "2025-03-10T14:00:00Z" },
+];
 
-  return NextResponse.json(data ?? []);
+export async function GET(request: NextRequest) {
+  const auth = getAuth(request);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json(templates);
 }
 
 export async function POST(request: NextRequest) {
-  const token = request.cookies.get("aivory_access_token")?.value;
-  if (!token) return unauthorized();
+  const auth = getAuth(request);
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let userId: string | null = null;
-  try {
-    const payload = decodeJwt(token);
-    if (isTokenExpired(payload)) return unauthorized();
-    userId = getUserId(payload) || null;
-  } catch {
-    return unauthorized();
-  }
+  const body = await request.json();
+  if (!body.name) return NextResponse.json({ error: "Missing required field: name" }, { status: 400 });
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "Missing required field: name" },
-      { status: 400 }
-    );
-  }
-
-  const validation = validateCreatePayload(body);
-  if ("error" in validation) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
-  }
-
-  const insertRow = {
-    name: validation.name,
-    description: validation.description ?? null,
-    category: validation.category,
-    tags: validation.tags ?? null,
-    workflow_json: validation.workflow_json,
-    status: validation.status ?? "draft",
-    // `created_by` references auth.users(id); if the Aivory JWT sub is not a
-    // Supabase auth user UUID, we store null rather than fail the insert.
-    created_by: userId && /^[0-9a-f-]{36}$/i.test(userId) ? userId : null,
+  const newTemplate = {
+    id: `tpl-${Date.now()}`,
+    name: body.name,
+    description: body.description || null,
+    category: body.category || "general",
+    tags: body.tags || [],
+    status: body.status || "draft",
+    workflow_json: body.workflow_json || {},
+    created_by: auth.payload.user_id || null,
+    created_at: new Date().toISOString(),
   };
-
-  const { data, error } = await supabaseAdmin
-    .from("automation_templates")
-    .insert(insertRow)
-    .select("*")
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(data, { status: 201 });
+  templates.push(newTemplate);
+  return NextResponse.json(newTemplate, { status: 201 });
 }
