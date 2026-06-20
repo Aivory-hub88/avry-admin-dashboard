@@ -281,9 +281,9 @@ export default function TemplateUploadModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, status: "published" })}
+                  onClick={() => setForm({ ...form, status: "active" })}
                   className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    form.status === "published"
+                    form.status === "active"
                       ? "border-[#00e59e]/30 bg-[#00e59e]/15 text-[#00e59e]"
                       : "border-white/[0.07] bg-white/5 text-gray-300 hover:bg-white/10"
                   }`}

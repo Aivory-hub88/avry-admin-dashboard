@@ -16,7 +16,7 @@ export const TEMPLATE_CATEGORIES = [
 
 export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number];
 
-export const TEMPLATE_STATUSES = ["draft", "published"] as const;
+export const TEMPLATE_STATUSES = ["draft", "active"] as const;
 export type TemplateStatus = (typeof TEMPLATE_STATUSES)[number];
 
 export interface AutomationTemplate {
@@ -87,7 +87,7 @@ export function validateCreatePayload(
       typeof obj.status !== "string" ||
       !TEMPLATE_STATUSES.includes(obj.status as TemplateStatus)
     ) {
-      return { error: "status must be 'draft' or 'published'" };
+      return { error: "status must be 'draft' or 'active'" };
     }
   }
   // Optional tags validation (accept array of strings or omit)
@@ -157,7 +157,7 @@ export function validateUpdatePayload(
       typeof obj.status !== "string" ||
       !TEMPLATE_STATUSES.includes(obj.status as TemplateStatus)
     ) {
-      return { error: "status must be 'draft' or 'published'" };
+      return { error: "status must be 'draft' or 'active'" };
     }
     patch.status = obj.status as TemplateStatus;
   }

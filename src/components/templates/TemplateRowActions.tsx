@@ -19,7 +19,7 @@ export default function TemplateRowActions({
   const [busy, setBusy] = useState<"toggle" | "delete" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const nextStatus = template.status === "published" ? "draft" : "published";
+  const nextStatus = template.status === "active" ? "draft" : "active";
 
   async function handleToggle(e: React.MouseEvent) {
     e.stopPropagation();
@@ -80,7 +80,7 @@ export default function TemplateRowActions({
         >
           {busy === "toggle"
             ? "..."
-            : template.status === "published"
+            : template.status === "active"
               ? "Unpublish"
               : "Publish"}
         </button>

@@ -2,7 +2,7 @@
 import React from "react";
 import { TEMPLATE_CATEGORIES } from "@/lib/templates";
 
-export type StatusFilterValue = "all" | "published" | "draft";
+export type StatusFilterValue = "all" | "active" | "draft";
 export type CategoryFilterValue = "all" | (typeof TEMPLATE_CATEGORIES)[number];
 
 interface TemplateFilterBarProps {
@@ -27,7 +27,7 @@ export default function TemplateFilterBar({
         aria-label="Filter by status"
       >
         <option value="all">All Statuses</option>
-        <option value="published">Published</option>
+        <option value="active">Published</option>
         <option value="draft">Draft</option>
       </select>
       <select
