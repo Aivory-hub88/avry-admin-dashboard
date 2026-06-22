@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleVpsPanelDirect } from "../route";
+import { handleVpsPanelDirect, validateAdminToken } from "../route";
 import { type VpsPanelRequestType } from "../query-routing";
-import { validateAdminToken } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +13,9 @@ let activeConnections = 0;
 
 export async function GET(req: NextRequest) {
   // Validate token
-  const authResponse = await validateAdminToken(req);
-  if (authResponse) return authResponse;
+  const token = req.cookies.get("aivory_access_token")?.value;
+  const authResponse = validateAdminToken(token);
+  if (!authResponse.valid) return NextResponse.json({ error: authResponse.error }, { status: 401 });
 
   const url = req.nextUrl;
   const path = url.searchParams.get("path") || "/system";

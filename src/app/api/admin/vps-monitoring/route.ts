@@ -113,7 +113,7 @@ function resolveAccountType(payload: JwtPayload): string | undefined {
   );
 }
 
-function validateAdminToken(token: string | undefined): {
+export function validateAdminToken(token: string | undefined): {
   valid: boolean;
   error?: string;
 } {
