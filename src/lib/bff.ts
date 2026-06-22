@@ -1,3 +1,4 @@
+import { getCookie } from "@/lib/cookies";
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceUrl, ServiceName } from "@/lib/services";
 
@@ -76,4 +77,23 @@ export async function proxyToService({
   } catch {
     return { ok: false, status: 502, data: null, unreachable: true };
   }
+}
+
+/**
+ * Client-side fetch wrapper for BFF (same-origin) API routes.
+ * Attaches the access token from cookies automatically.
+ */
+export async function bffFetch(
+  path: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const token = getCookie("aivory_access_token");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return fetch(path, { ...options, headers });
 }
