@@ -42,13 +42,7 @@ interface JwtPayload {
   exp: number;
 }
 
-interface VpsPanelSystemMetrics {
-  cpu: { usagePercent: number };
-  memory: { usedBytes: number; totalBytes: number };
-  disk: { usedBytes: number; totalBytes: number };
-  network: { rxBytesPerSec: number; txBytesPerSec: number };
-  timestamp: string;
-}
+
 
 interface VpsPanelProjectMetrics {
   projectId: string;
