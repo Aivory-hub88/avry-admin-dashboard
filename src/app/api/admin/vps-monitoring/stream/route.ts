@@ -26,14 +26,15 @@ export async function GET(req: NextRequest) {
   const resolutionParam = url.searchParams.get("resolution") || null;
   const userIdParam = url.searchParams.get("userId") || null;
 
+  const formatParam = url.searchParams.get("format") || null;
+
   // Map path to request type
   let requestType: VpsPanelRequestType = "system";
   if (path.includes("containers")) requestType = "containers";
   else if (path.includes("projects")) requestType = "project";
   else if (path.includes("history")) requestType = "history";
-  else if (path.includes("users")) requestType = "users";
 
-  const cacheKey = `${requestType}:${queryParam}:${startParam}:${endParam}:${stepParam}:${resolutionParam}:${userIdParam}`;
+  const cacheKey = `${requestType}:${queryParam}:${startParam}:${endParam}:${stepParam}:${resolutionParam}:${userIdParam}:${formatParam}`;
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -72,6 +73,7 @@ export async function GET(req: NextRequest) {
             step: stepParam,
             resolution: resolutionParam,
             userId: userIdParam,
+            format: formatParam,
           });
 
           if (!res.ok) {
