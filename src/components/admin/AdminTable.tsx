@@ -88,14 +88,14 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-red-400">{error}</div>
+        <div className="text-red-600">{error}</div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#1e1e20]">
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/10">
@@ -136,36 +136,36 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
               </tr>
             ) : (
               admins.map((admin) => (
-                <tr key={admin.id} className="border-b border-white/10 hover:bg-white/5">
+                <tr key={admin.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                   <td className="py-3 px-4 text-sm">
-                    <div className="font-medium">{admin.full_name}</div>
+                    <div className="font-medium text-gray-200">{admin.full_name}</div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-300">
+                  <td className="py-3 px-4 text-sm text-gray-400">
                     {admin.email}
                   </td>
-                  <td className="py-3 px-4 text-sm">
+                  <td className="py-3 px-4 text-sm text-gray-300">
                     <div className="flex items-center gap-1">
                       {admin.account_type === "superadmin" ? (
-                        <ShieldAlert className="text-[#b688ff]" size={16} />
+                        <ShieldAlert className="text-[#a855f7]" size={16} />
                       ) : (
-                        <Shield className="text-[#4db8ff]" size={16} />
+                        <Shield className="text-[#3b82f6]" size={16} />
                       )}
                       <span className="capitalize">{admin.account_type}</span>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-300">
+                  <td className="py-3 px-4 text-sm text-gray-400">
                     {admin.created_by}
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-300">
+                  <td className="py-3 px-4 text-sm text-gray-400">
                     {formatDate(admin.created_at)}
                   </td>
                   <td className="py-3 px-4 text-sm">
                     {admin.ban_duration ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-500/10 text-red-400 rounded-full text-xs border border-red-500/20">
                         Deactivated
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#00e59e]/10 text-[#00e59e] rounded-full text-xs border border-[#00e59e]/20">
                         Active
                       </span>
                     )}
@@ -179,23 +179,23 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                               showMenu === admin.id ? null : admin.id
                             )
                           }
-                          className="p-2 hover:bg-white/10 rounded-md"
+                          className="p-2 hover:bg-white/10 text-gray-400 rounded-md transition-colors"
                         >
                           <MoreVertical size={16} />
                         </button>
                         {showMenu === admin.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-[#2a2a27] border border-white/10 rounded-md shadow-lg z-10">
+                          <div className="absolute right-0 mt-2 w-48 bg-[#2a2a2a] border border-white/10 rounded-md shadow-lg z-10">
                             {admin.ban_duration ? (
                               <button
                                 onClick={() => handleReactivate(admin)}
-                                className="w-full px-4 py-2 text-left text-sm text-[#00e59e] hover:bg-white/5"
+                                className="w-full px-4 py-2 text-left text-sm text-[#00e59e] hover:bg-white/5 transition-colors"
                               >
                                 Reactivate
                               </button>
                             ) : (
                               <button
                                 onClick={() => handleDeactivate(admin)}
-                                className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-white/5"
+                                className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-white/5 transition-colors"
                               >
                                 Deactivate
                               </button>
