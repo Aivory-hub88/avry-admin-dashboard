@@ -50,7 +50,7 @@ const AppHeader: React.FC = () => {
 
       {/* Mobile logo */}
       <Link href="/dashboard" className="lg:hidden mr-auto">
-        <Image width={110} height={28} src="/aivory-logo.svg" alt="Aivory Admin" />
+        <Image width={110} height={28} src="/admin/aivory-logo.svg" alt="Aivory Admin" />
       </Link>
 
       {/* Spacer */}

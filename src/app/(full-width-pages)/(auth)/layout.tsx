@@ -21,7 +21,7 @@ export default function AuthLayout({
                 <Image
                   width={231}
                   height={48}
-                  src="/aivory-logo.svg"
+                  src="/admin/aivory-logo.svg"
                   alt="Aivory Logo"
                 />
               </Link>

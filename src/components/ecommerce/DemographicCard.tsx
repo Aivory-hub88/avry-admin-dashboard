@@ -70,7 +70,7 @@ export default function DemographicCard() {
               <Image
                 width={48}
                 height={48}
-                src="/images/country/country-01.svg"
+                src="/admin/images/country/country-01.svg"
                 alt="usa"
                 className="w-full"
               />
@@ -102,7 +102,7 @@ export default function DemographicCard() {
                 width={48}
                 height={48}
                 className="w-full"
-                src="/images/country/country-02.svg"
+                src="/admin/images/country/country-02.svg"
                 alt="france"
               />
             </div>

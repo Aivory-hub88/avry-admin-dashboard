@@ -79,9 +79,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ unreadReports = 0 }) => {
       >
         <Link href="/dashboard" className="flex items-center gap-2">
           {showExpanded ? (
-            <Image src="/aivory-logo.svg" alt="Aivory Admin" width={120} height={30} />
+            <Image src="/admin/aivory-logo.svg" alt="Aivory Admin" width={120} height={30} />
           ) : (
-            <Image src="/aivory-icon.svg" alt="Aivory" width={28} height={28} />
+            <Image src="/admin/aivory-icon.svg" alt="Aivory" width={28} height={28} />
           )}
         </Link>
       </div>
