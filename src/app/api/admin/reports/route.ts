@@ -1,17 +1,4 @@
-// TODO: wire to real endpoint
 import { NextRequest, NextResponse } from "next/server";
-
-// In-memory store for mock reports (resets on server restart)
-const mockReports: Array<{
-  id: string;
-  recordType: string;
-  recordId: string;
-  reportedBy: string;
-  note?: string;
-  createdAt: string;
-  isRead: boolean;
-  readAt?: string;
-}> = [];
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get("aivory_access_token")?.value;
@@ -26,7 +13,6 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const unreadOnly = searchParams.get("unread") === "true";
 
-  // Attempt to forward to real backend when available
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (apiUrl) {
     try {
@@ -51,18 +37,11 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(data);
       }
     } catch {
-      // Backend not available — fall through to mock data
+      // Backend not reachable — return empty response
     }
   }
 
-  const filtered = unreadOnly
-    ? mockReports.filter((r) => !r.isRead)
-    : mockReports;
-
-  return NextResponse.json({
-    reports: filtered,
-    count: filtered.length,
-  });
+  return NextResponse.json({ reports: [], unreadCount: 0 });
 }
 
 export async function POST(request: NextRequest) {
@@ -91,7 +70,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Attempt to forward to real backend when available
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (apiUrl) {
     try {
@@ -115,22 +93,17 @@ export async function POST(request: NextRequest) {
         const data = await res.json();
         return NextResponse.json(data, { status: 201 });
       }
+
+      // Forward error from backend
+      const errorData = await res.json().catch(() => ({ error: `Backend error: ${res.status}` }));
+      return NextResponse.json(errorData, { status: res.status });
     } catch {
-      // Backend not available — fall through to mock data
+      // Backend not reachable
     }
   }
 
-  const report = {
-    id: `report-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    recordType,
-    recordId,
-    reportedBy: reportedBy ?? "admin@aivory.id",
-    note: note ?? undefined,
-    createdAt: new Date().toISOString(),
-    isRead: false,
-  };
-
-  mockReports.push(report);
-
-  return NextResponse.json(report, { status: 201 });
+  return NextResponse.json(
+    { error: "Backend service unavailable" },
+    { status: 503 }
+  );
 }

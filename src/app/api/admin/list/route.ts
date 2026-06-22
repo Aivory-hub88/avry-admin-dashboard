@@ -1,48 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
+// [SUPABASE MIGRATION] import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { cookies } from "next/headers";
 
-interface JwtPayload {
-  user_id?: string;
-  email?: string;
-  account_type?: string;
-  exp: number;
-}
+const BACKEND_URL =
+  process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
 
-const BACKEND_URL = process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
-
-function getAuth(request: NextRequest): { token: string; payload: JwtPayload } | null {
-  const token = request.cookies.get("aivory_access_token")?.value;
-  if (!token) return null;
-  try {
-    const payload = jwtDecode<JwtPayload>(token);
-    if (payload.exp * 1000 < Date.now()) return null;
-    const role = payload.account_type;
-    if (role !== "superadmin" && role !== "admin") return null;
-    return { token, payload };
-  } catch {
-    return null;
-  }
-}
-
-function isSuperAdmin(payload: JwtPayload): boolean {
-  return payload.account_type === "superadmin";
-}
-
+/**
+ * GET /api/admin/list
+ * List all admin users (admin and super admin access)
+ *
+ * [SUPABASE MIGRATION] Previously used supabaseAdmin.auth.admin.listUsers.
+ * Now forwards to backend service GET /api/v1/admin/admin-accounts.
+ */
 export async function GET(request: NextRequest) {
-  const auth = getAuth(request);
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
-    const res = await fetch(`${BACKEND_URL}/api/v1/admin/users`, {
-      headers: { Authorization: `Bearer ${auth.token}` },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return NextResponse.json(data);
+    // 1. Get auth token from cookies
+    const cookieStore = await cookies();
+    const accessToken =
+      cookieStore.get("aivory_access_token")?.value ||
+      cookieStore.get("sb-access-token")?.value;
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "Unauthorized: No access token" },
+        { status: 401 }
+      );
     }
-    // Fallback: query DB directly for admin users
-    return NextResponse.json({ admins: [], total: 0 });
-  } catch {
-    return NextResponse.json({ admins: [], total: 0 });
+
+    // 2. Forward to backend service
+    const backendRes = await fetch(
+      `${BACKEND_URL}/api/v1/admin/admin-accounts`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const data = await backendRes.json();
+
+    if (!backendRes.ok) {
+      return NextResponse.json(
+        { error: data.error || data.detail || "Failed to fetch admin users" },
+        { status: backendRes.status }
+      );
+    }
+
+    // Backend may return the list directly or wrapped; normalize to expected shape
+    const admins = Array.isArray(data) ? data : data.admins || [];
+    return NextResponse.json({
+      admins,
+      total: admins.length,
+    });
+  } catch (error) {
+    console.error("Unexpected error in list admins:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

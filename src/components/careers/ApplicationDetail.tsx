@@ -37,7 +37,7 @@ interface ApplicationDetail {
 // --- Helpers ---
 
 const CAREERS_SERVICE_URL =
-  "";
+  process.env.NEXT_PUBLIC_CAREERS_SERVICE_URL ?? "http://localhost:8090";
 
 async function fetchWithAuth(path: string, options: RequestInit = {}) {
   const token = getCookie("aivory_access_token");
@@ -50,7 +50,7 @@ async function fetchWithAuth(path: string, options: RequestInit = {}) {
   if (!headers["Content-Type"] && options.method && options.method !== "GET") {
     headers["Content-Type"] = "application/json";
   }
-  return fetch(`/admin/api/admin/careers${path}`, { ...options, headers });
+  return fetch(`${CAREERS_SERVICE_URL}${path}`, { ...options, headers });
 }
 
 function formatDate(dateString: string): string {
@@ -130,7 +130,7 @@ export default function ApplicationDetail({
     setError("");
     try {
       const res = await fetchWithAuth(
-        `/applications/${applicationId}`
+        `/api/admin/applications/${applicationId}`
       );
       if (!res.ok) {
         throw new Error(`Failed to fetch application (${res.status})`);
@@ -159,7 +159,7 @@ export default function ApplicationDetail({
         headers["Authorization"] = `Bearer ${token}`;
       }
       const res = await fetch(
-        `/admin/api/admin/careers/applications/${applicationId}/cv`,
+        `${CAREERS_SERVICE_URL}/api/admin/applications/${applicationId}/cv`,
         { headers }
       );
       if (!res.ok) {
@@ -191,7 +191,7 @@ export default function ApplicationDetail({
     setEmailSuccess("");
     try {
       const res = await fetchWithAuth(
-        `/applications/${applicationId}/email`,
+        `/api/admin/applications/${applicationId}/email`,
         {
           method: "POST",
           body: JSON.stringify({
@@ -223,7 +223,7 @@ export default function ApplicationDetail({
     setTagError("");
     try {
       const res = await fetchWithAuth(
-        `/applications/${applicationId}/tags`,
+        `/api/admin/applications/${applicationId}/tags`,
         {
           method: "POST",
           body: JSON.stringify({ tag: newTag.trim() }),

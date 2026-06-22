@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import WriteGate from "@/components/rbac/WriteGate";
 import { AutomationTemplate } from "@/lib/templates";
+import { bffFetch } from "@/lib/bff";
 
 interface TemplateRowActionsProps {
   template: AutomationTemplate;
@@ -19,14 +20,14 @@ export default function TemplateRowActions({
   const [busy, setBusy] = useState<"toggle" | "delete" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const nextStatus = template.status === "active" ? "draft" : "active";
+  const nextStatus = template.status === "published" ? "draft" : "published";
 
   async function handleToggle(e: React.MouseEvent) {
     e.stopPropagation();
     setBusy("toggle");
     setError(null);
     try {
-      const res = await fetch(`/admin/api/admin/templates/${template.id}`, {
+      const res = await bffFetch(`/api/admin/templates/${template.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
@@ -53,7 +54,7 @@ export default function TemplateRowActions({
     setBusy("delete");
     setError(null);
     try {
-      const res = await fetch(`/admin/api/admin/templates/${template.id}`, {
+      const res = await bffFetch(`/api/admin/templates/${template.id}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -80,7 +81,7 @@ export default function TemplateRowActions({
         >
           {busy === "toggle"
             ? "..."
-            : template.status === "active"
+            : template.status === "published"
               ? "Unpublish"
               : "Publish"}
         </button>

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
+import { bffFetch } from "@/lib/bff";
 
 interface DeactivateModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export function DeactivateModal({
     setLoading(true);
 
     try {
-      const response = await fetch(`/admin/api/admin/${adminId}/deactivate`, {
+      const response = await bffFetch(`/api/admin/${adminId}/deactivate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,7 +65,7 @@ export function DeactivateModal({
     setLoading(true);
 
     try {
-      const response = await fetch(`/admin/api/admin/${adminId}/deactivate`, {
+      const response = await bffFetch(`/api/admin/${adminId}/deactivate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

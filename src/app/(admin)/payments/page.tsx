@@ -5,6 +5,7 @@ import DetailView from "@/components/shared/DetailView";
 import LoadingSkeleton from "@/components/shared/LoadingSkeleton";
 import ErrorState from "@/components/shared/ErrorState";
 import WriteGate from "@/components/rbac/WriteGate";
+import { bffFetch } from "@/lib/bff";
 
 interface Payment extends Record<string, unknown> {
   paymentId: string;
@@ -101,7 +102,7 @@ export default function PaymentsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/admin/api/admin/payments");
+      const res = await bffFetch("/api/admin/payments");
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = "/admin/signin";
@@ -161,7 +162,7 @@ export default function PaymentsPage() {
 
     const paymentMethod = prompt("Enter Payment Method:", "manual");
 
-    fetch("/admin/api/admin/payments", {
+    bffFetch("/api/admin/payments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

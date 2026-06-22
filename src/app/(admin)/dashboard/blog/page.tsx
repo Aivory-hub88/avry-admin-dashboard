@@ -23,7 +23,7 @@ interface BlogPost {
 }
 
 const BLOG_SERVICE_URL =
-  "";
+  process.env.NEXT_PUBLIC_BLOG_SERVICE_URL ?? "http://localhost:8089";
 
 export default function BlogAdminPanel() {
   const [activeTab, setActiveTab] = useState<BlogTab>("manage");
@@ -36,7 +36,7 @@ export default function BlogAdminPanel() {
     setLoading(true);
     try {
       const token = getCookie("aivory_access_token");
-      const res = await fetch("/admin/api/admin/blog", {
+      const res = await fetch(`${BLOG_SERVICE_URL}/api/admin/posts`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },

@@ -4,6 +4,7 @@ import DataTable, { Column } from "@/components/shared/DataTable";
 import DetailView from "@/components/shared/DetailView";
 import LoadingSkeleton from "@/components/shared/LoadingSkeleton";
 import ErrorState from "@/components/shared/ErrorState";
+import { bffFetch } from "@/lib/bff";
 
 interface IntegrationConnection extends Record<string, unknown> {
   integrationId: string;
@@ -72,7 +73,7 @@ export default function IntegrationsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/admin/api/admin/integrations");
+      const res = await bffFetch("/api/admin/integrations");
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = "/admin/signin";

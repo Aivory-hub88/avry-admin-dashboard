@@ -13,7 +13,7 @@ import { useModal } from "@/hooks/useModal";
 import { getCookie } from "@/lib/cookies";
 
 const CAREERS_SERVICE_URL =
-  "";
+  process.env.NEXT_PUBLIC_CAREERS_URL ?? "http://localhost:8090";
 
 interface Vacancy {
   id: string;
@@ -66,7 +66,7 @@ export default function VacancyList({ onEdit }: VacancyListProps) {
     try {
       setError(null);
       const token = getCookie("aivory_access_token");
-      const res = await fetch(`/admin/api/admin/careers/vacancies`, {
+      const res = await fetch(`${CAREERS_SERVICE_URL}/api/admin/vacancies`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
           "Content-Type": "application/json",
@@ -96,7 +96,7 @@ export default function VacancyList({ onEdit }: VacancyListProps) {
     try {
       const token = getCookie("aivory_access_token");
       const res = await fetch(
-        `/admin/api/admin/careers/vacancies/${vacancy.id}/status`,
+        `${CAREERS_SERVICE_URL}/api/admin/vacancies/${vacancy.id}/status`,
         {
           method: "PATCH",
           headers: {

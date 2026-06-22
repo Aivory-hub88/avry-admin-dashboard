@@ -1,4 +1,5 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 import React, { useState, useEffect, useCallback } from "react";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import DetailView from "@/components/shared/DetailView";
@@ -154,24 +155,8 @@ export default function DiagnosticsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // Try to fetch from backend API first
-      
-      try {
-        const res = await fetch("/admin/api/admin/diagnostics");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.diagnostics) {
-            setDiagnostics(data.diagnostics);
-            setStats(data.stats);
-            return;
-          }
-        }
-      } catch {
-        // Fallback to mock data if backend unavailable
-      }
-
-      // Fallback to frontend API
-      const res = await fetch("/admin/api/admin/diagnostics");
+      // Fetch from BFF route which proxies to diagnostics service
+      const res = await bffFetch("/api/admin/diagnostics");
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = "/admin/signin";

@@ -3,7 +3,7 @@ import React, { useState, useCallback } from "react";
 import { getCookie } from "@/lib/cookies";
 
 const BLOG_SERVICE_URL =
-  "";
+  process.env.NEXT_PUBLIC_BLOG_SERVICE_URL ?? "http://localhost:8089";
 
 // --- Content Block Types ---
 
@@ -556,8 +556,8 @@ export default function BlogPostEditor({ editPost, onSaved }: BlogPostEditorProp
 
       const isEdit = !!editPost?.id;
       const url = isEdit
-        ? `/admin/api/admin/blog/api/admin/posts/${editPost.id}`
-        : `/admin/api/admin/blog/api/admin/posts`;
+        ? `${BLOG_SERVICE_URL}/api/admin/posts/${editPost.id}`
+        : `${BLOG_SERVICE_URL}/api/admin/posts`;
       const method = isEdit ? "PUT" : "POST";
 
       const res = await fetch(url, {

@@ -12,9 +12,10 @@ interface VisitorsKpiCardsProps {
 }
 
 function pickTotal(aggregate: VisitorAggregate, range: VisitRange): number {
-  if (range === "7d") return aggregate.totals.last7Days;
-  if (range === "30d") return aggregate.totals.last30Days;
-  return aggregate.totals.allTime;
+  if (!aggregate?.totals) return 0;
+  if (range === "7d") return aggregate.totals.last7Days ?? 0;
+  if (range === "30d") return aggregate.totals.last30Days ?? 0;
+  return aggregate.totals.allTime ?? 0;
 }
 
 /**
@@ -80,7 +81,7 @@ export default function VisitorsKpiCards({
   onRetry,
 }: VisitorsKpiCardsProps) {
   const totalVisits = pickTotal(aggregate, range);
-  const mostVisitedPage = aggregate.byPage[0]?.page ?? "—";
+  const mostVisitedPage = aggregate?.byPage?.[0]?.page ?? "—";
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -93,7 +94,7 @@ export default function VisitorsKpiCards({
       />
       <KpiCard
         title="Unique Countries"
-        value={aggregate.uniqueCountries}
+        value={aggregate?.uniqueCountries ?? 0}
         isLoading={isLoading}
         error={error}
         onRetry={onRetry}
@@ -105,7 +106,7 @@ export default function VisitorsKpiCards({
       />
       <KpiCard
         title="Today's Visits"
-        value={aggregate.totals.today}
+        value={aggregate?.totals?.today ?? 0}
         isLoading={isLoading}
         error={error}
         onRetry={onRetry}

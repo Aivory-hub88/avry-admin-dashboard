@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccessToken, proxyToService, unauthorized } from "@/lib/bff";
 
-export interface BlueprintRecord {
+export interface BlueprintRecord extends Record<string, unknown> {
   id: string;
   userId: string;
   userEmail: string;
@@ -15,14 +15,23 @@ export interface BlueprintRecord {
   pdfUrl: string | null;
 }
 
-function mapBlueprint(b: any): BlueprintRecord {
-  const id = b.blueprint_id ?? b.id ?? "";
+interface ServiceBlueprint {
+  blueprint_id?: string;
+  user_id?: string;
+  user_email?: string;
+  system_name?: string;
+  created_at?: string;
+  version?: string;
+}
+
+function mapBlueprint(b: ServiceBlueprint): BlueprintRecord {
+  const id = b.blueprint_id ?? "";
   return {
     id,
     userId: b.user_id ?? "",
-    userEmail: b.user_email ?? b.email ?? "",
+    userEmail: b.user_email ?? "",
     tier: "blueprint",
-    title: b.system_name ?? b.title ?? "Untitled Blueprint",
+    title: b.system_name ?? "Untitled Blueprint",
     status: "completed",
     sections: 8,
     completedSections: 8,
@@ -42,15 +51,21 @@ export async function GET(request: NextRequest) {
     token,
   });
 
-  if (result.notConfigured || result.unreachable) {
-    return NextResponse.json([]);
+  if (result.status === 401) return unauthorized();
+  if (result.notConfigured) {
+    return NextResponse.json(
+      { error: "Blueprint service is not configured" },
+      { status: 503 }
+    );
   }
-
   if (!result.ok) {
-    return NextResponse.json([], { status: 200 });
+    return NextResponse.json(
+      { error: "Failed to reach blueprint service" },
+      { status: 502 }
+    );
   }
 
-  const raw = result.data as any;
-  const items = raw?.blueprints ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
-  return NextResponse.json(items.map(mapBlueprint));
+  const data = result.data as { blueprints?: ServiceBlueprint[] } | null;
+  const raw = Array.isArray(data?.blueprints) ? data!.blueprints! : [];
+  return NextResponse.json({ blueprints: raw.map(mapBlueprint) });
 }

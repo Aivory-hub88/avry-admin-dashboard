@@ -23,9 +23,9 @@ function renderTags(tags: string[] | null | undefined): string {
 }
 
 function statusBadge(status: AutomationTemplate["status"]) {
-  const label = status === "active" ? "Published" : "Draft";
+  const label = status === "published" ? "Published" : "Draft";
   const classes =
-    status === "active"
+    status === "published"
       ? "bg-[#00e59e]/20 text-[#00e59e]"
       : "bg-white/10 text-gray-300";
   return (

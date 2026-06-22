@@ -1,24 +1,56 @@
-import { getCookie } from "@/lib/cookies";
-import { NextRequest, NextResponse } from "next/server";
-import { getServiceUrl, ServiceName } from "@/lib/services";
+/**
+ * BFF (Backend-For-Frontend) utilities.
+ *
+ * Server-side: helpers for Next.js API routes to proxy requests to
+ * internal microservices over the Docker network.
+ *
+ * Client-side: a fetch wrapper that prepends the basePath ("/admin") so
+ * browser-initiated requests reach the admin container via Traefik.
+ */
 
-/** Standard 401 response that also clears stale auth cookies. */
-export function unauthorized() {
-  const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  response.cookies.delete("aivory_access_token");
-  response.cookies.delete("aivory_refresh_token");
-  return response;
+import { NextRequest, NextResponse } from "next/server";
+
+// ─── Service URL map ─────────────────────────────────────────────────────────
+const SERVICE_URLS: Record<string, string | undefined> = {
+  backend: process.env.BACKEND_SERVICE_URL,
+  payments: process.env.PAYMENTS_SERVICE_URL,
+  diagnostics: process.env.DIAGNOSTICS_SERVICE_URL,
+  blueprint: process.env.BLUEPRINT_SERVICE_URL,
+  roadmap: process.env.ROADMAP_SERVICE_URL,
+  workflows: process.env.WORKFLOWS_SERVICE_URL,
+  blog: process.env.BLOG_SERVICE_URL,
+  careers: process.env.CAREERS_SERVICE_URL,
+};
+
+// Fallback when per-service URL is not configured
+const DEFAULT_BACKEND =
+  process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
+
+// ─── Server-side helpers ─────────────────────────────────────────────────────
+
+/**
+ * Extract the bearer token from the incoming request's Authorization header
+ * or from the `aivory_access_token` cookie.
+ */
+export function getAccessToken(request: NextRequest): string | null {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.slice(7);
+  }
+  return request.cookies.get("aivory_access_token")?.value ?? null;
 }
 
-/** Extract the access token from the request cookies. */
-export function getAccessToken(request: NextRequest): string | undefined {
-  return request.cookies.get("aivory_access_token")?.value;
+/**
+ * Return a standard 401 JSON response.
+ */
+export function unauthorized(): NextResponse {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 interface ProxyOptions {
-  service: ServiceName;
+  service: string;
   path: string;
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  method?: string;
   token: string;
   body?: unknown;
   query?: Record<string, string>;
@@ -28,72 +60,72 @@ interface ProxyResult {
   ok: boolean;
   status: number;
   data: unknown;
-  /** True when the service URL is not configured. */
   notConfigured?: boolean;
-  /** True when the service could not be reached. */
   unreachable?: boolean;
 }
 
 /**
- * Proxy a request from a BFF route to a backing microservice.
- *
- * Handles URL resolution, auth forwarding, query strings, JSON bodies and
- * normalizes failure modes so callers can decide how to respond.
+ * Proxy a request to an internal microservice.
+ * Resolves the service URL from environment variables and forwards
+ * the request with the provided bearer token.
  */
-export async function proxyToService({
-  service,
-  path,
-  method = "GET",
-  token,
-  body,
-  query,
-}: ProxyOptions): Promise<ProxyResult> {
-  const base = getServiceUrl(service);
-  if (!base) {
+export async function proxyToService(
+  options: ProxyOptions
+): Promise<ProxyResult> {
+  const { service, path, method = "GET", token, body, query } = options;
+
+  const baseUrl = SERVICE_URLS[service] || DEFAULT_BACKEND;
+  if (!baseUrl) {
     return { ok: false, status: 503, data: null, notConfigured: true };
   }
 
-  const qs = query ? `?${new URLSearchParams(query).toString()}` : "";
-  const url = `${base}${path}${qs}`;
+  let url = `${baseUrl}${path}`;
+  if (query && Object.keys(query).length > 0) {
+    const params = new URLSearchParams(query);
+    url += `?${params.toString()}`;
+  }
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  const init: RequestInit = { method, headers };
+  if (body && method !== "GET") {
+    init.body = JSON.stringify(body);
+  }
 
   try {
-    const res = await fetch(url, {
-      method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-      cache: "no-store",
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (res.status === 401 || res.status === 403) {
-      return { ok: false, status: res.status, data };
+    const res = await fetch(url, init);
+    let data: unknown = null;
+    try {
+      data = await res.json();
+    } catch {
+      // non-JSON response — ignore
     }
-
     return { ok: res.ok, status: res.status, data };
   } catch {
     return { ok: false, status: 502, data: null, unreachable: true };
   }
 }
 
+// ─── Client-side helper ──────────────────────────────────────────────────────
+
+export const BASE_PATH = "/admin";
+
 /**
- * Client-side fetch wrapper for BFF (same-origin) API routes.
- * Attaches the access token from cookies automatically.
+ * Fetch wrapper for the admin dashboard's own Next.js API routes.
+ * Automatically prepends the basePath ("/admin") so the request
+ * reaches the correct container via Traefik.
+ *
+ * Use this for client-side fetch calls to the app's own BFF routes
+ * (e.g. /api/admin/users, /api/auth/login).
  */
-export async function bffFetch(
+export function bffFetch(
   path: string,
-  options: RequestInit = {}
+  init?: RequestInit
 ): Promise<Response> {
-  const token = getCookie("aivory_access_token");
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  return fetch(path, { ...options, headers });
+  // If the path already starts with the basePath, don't double-prefix
+  const url = path.startsWith(BASE_PATH) ? path : `${BASE_PATH}${path}`;
+  return fetch(url, init);
 }

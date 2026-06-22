@@ -1,4 +1,5 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 
 import React, { useState } from "react";
 import { X, Copy, RefreshCw } from "lucide-react";
@@ -104,7 +105,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
     }
 
     try {
-      const response = await fetch("/admin/api/admin/create", {
+      const response = await bffFetch("/api/admin/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

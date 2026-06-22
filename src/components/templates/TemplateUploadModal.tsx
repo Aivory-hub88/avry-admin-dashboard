@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { bffFetch } from "@/lib/bff";
 import { Modal } from "@/components/ui/modal";
 import {
   AutomationTemplate,
@@ -162,7 +163,7 @@ export default function TemplateUploadModal({
           ? `/api/admin/templates/${initial.id}`
           : "/api/admin/templates";
       const method = mode === "edit" ? "PATCH" : "POST";
-      const res = await fetch(url, {
+      const res = await bffFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -194,7 +195,7 @@ export default function TemplateUploadModal({
           background: "var(--color-bg-elevated, #3a3a36)",
           borderColor: "var(--color-border-soft, rgba(255,255,255,0.07))",
           color: "var(--color-text-primary, #f7f7f7)",
-          fontFamily: "var(--font-manrope, 'Manrope', Manrope, sans-serif)",
+          fontFamily: "var(--font-inter-tight, 'Inter Tight', Inter, sans-serif)",
           borderRadius: "var(--radius-card, 18px)",
         }}
       >
@@ -281,9 +282,9 @@ export default function TemplateUploadModal({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, status: "active" })}
+                  onClick={() => setForm({ ...form, status: "published" })}
                   className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                    form.status === "active"
+                    form.status === "published"
                       ? "border-[#00e59e]/30 bg-[#00e59e]/15 text-[#00e59e]"
                       : "border-white/[0.07] bg-white/5 text-gray-300 hover:bg-white/10"
                   }`}

@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { getCookie, setCookie, deleteCookie } from "@/lib/cookies";
 import { decodeJwt, isTokenExpiringSoon } from "@/lib/jwt";
+import { bffFetch } from "@/lib/bff";
 
 export function useTokenRefresh() {
   useEffect(() => {
@@ -19,7 +20,7 @@ export function useTokenRefresh() {
             return;
           }
 
-          const res = await fetch("/admin/api/auth/refresh", {
+          const res = await bffFetch("/api/auth/refresh", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ refresh_token: refreshToken }),

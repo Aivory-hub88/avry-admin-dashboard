@@ -1,41 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtDecode } from "jwt-decode";
-import { Pool } from "pg";
 
-interface JwtPayload { account_type?: string; exp: number; }
-let _pool: Pool | null = null;
-function getPool(): Pool {
-  if (!_pool) _pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 3, idleTimeoutMillis: 30000 });
-  return _pool;
-}
-function isAdmin(token: string): boolean {
-  try { const p = jwtDecode<JwtPayload>(token); return p.exp * 1000 > Date.now() && (p.account_type === "superadmin" || p.account_type === "admin"); }
-  catch { return false; }
-}
+const BACKEND_URL = process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get("aivory_access_token")?.value;
-  if (!token || !isAdmin(token)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!token) {
+    const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    response.cookies.delete("aivory_access_token");
+    response.cookies.delete("aivory_refresh_token");
+    return response;
+  }
 
   try {
-    const pool = getPool();
-    const { rows } = await pool.query(
-      "SELECT id, email, account_type, company_name, is_active, created_at FROM users ORDER BY created_at DESC"
-    );
-    const users = rows.map((u: any) => ({
-      userId: u.id,
-      email: u.email,
-      accountType: u.account_type,
-      companyName: u.company_name,
-      isActive: u.is_active,
-      createdAt: u.created_at,
-      tier: u.account_type === "superadmin" ? "enterprise" : "free",
-      credits: u.account_type === "superadmin" ? 2000 : 10,
-      creditsUsed: 0,
-    }));
-    return NextResponse.json(users);
-  } catch (err) {
-    console.error("[users]", err);
-    return NextResponse.json([]);
+    const res = await fetch(`${BACKEND_URL}/api/v1/admin/users`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (res.status === 401) {
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      response.cookies.delete("aivory_access_token");
+      response.cookies.delete("aivory_refresh_token");
+      return response;
+    }
+
+    if (res.ok) {
+      const data = await res.json();
+      return NextResponse.json(data);
+    }
+
+    return NextResponse.json({ users: [] });
+  } catch {
+    // Backend not reachable — return empty response
+    return NextResponse.json({ users: [] });
   }
 }

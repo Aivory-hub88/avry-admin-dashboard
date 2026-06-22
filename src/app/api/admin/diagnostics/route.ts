@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccessToken, proxyToService, unauthorized } from "@/lib/bff";
 
-export interface DiagnosticRun {
+export interface DiagnosticRun extends Record<string, unknown> {
   id: string;
   userId: string;
   userEmail: string;
@@ -16,19 +16,35 @@ export interface DiagnosticRun {
   durationMs: number | null;
 }
 
-function mapDiagnostic(d: any): DiagnosticRun {
+interface ServiceDiagnostic {
+  diagnostic_id?: string;
+  user_id?: string;
+  user_email?: string;
+  company_name?: string;
+  type?: string;
+  status?: string;
+  score?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+function mapDiagnostic(d: ServiceDiagnostic): DiagnosticRun {
+  // The service uses "free" / "paid"; the admin UI uses "free" / "deep".
+  const type: "free" | "deep" = d.type === "free" ? "free" : "deep";
+  const status =
+    d.status === "in_progress" || d.status === "failed" ? d.status : "completed";
   return {
-    id: d.diagnostic_id ?? d.id ?? "",
+    id: d.diagnostic_id ?? "",
     userId: d.user_id ?? "",
-    userEmail: d.user_email ?? d.email ?? "",
-    tier: d.type === "paid" ? "blueprint" : "free",
-    type: d.type === "free" ? "free" : "deep",
-    status: d.status === "in_progress" || d.status === "failed" ? d.status : "completed",
-    score: d.score ?? null,
-    phases: 5,
-    completedPhases: d.status === "completed" ? 5 : d.status === "in_progress" ? 3 : 0,
+    userEmail: d.user_email ?? "",
+    tier: d.type === "paid" ? "blueprint" : "snapshot",
+    type,
+    status,
+    score: typeof d.score === "number" ? d.score : null,
+    phases: type === "free" ? 3 : 5,
+    completedPhases: status === "completed" ? (type === "free" ? 3 : 5) : 0,
     startedAt: d.created_at ?? "",
-    completedAt: d.updated_at ?? null,
+    completedAt: status === "completed" ? d.updated_at ?? d.created_at ?? null : null,
     durationMs: null,
   };
 }
@@ -43,15 +59,21 @@ export async function GET(request: NextRequest) {
     token,
   });
 
-  if (result.notConfigured || result.unreachable) {
-    return NextResponse.json([]);
+  if (result.status === 401) return unauthorized();
+  if (result.notConfigured) {
+    return NextResponse.json(
+      { error: "Diagnostics service is not configured" },
+      { status: 503 }
+    );
   }
-
   if (!result.ok) {
-    return NextResponse.json([], { status: 200 });
+    return NextResponse.json(
+      { error: "Failed to reach diagnostics service" },
+      { status: 502 }
+    );
   }
 
-  const raw = result.data as any;
-  const items = raw?.diagnostics ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
-  return NextResponse.json(items.map(mapDiagnostic));
+  const data = result.data as { diagnostics?: ServiceDiagnostic[] } | null;
+  const raw = Array.isArray(data?.diagnostics) ? data!.diagnostics! : [];
+  return NextResponse.json({ diagnostics: raw.map(mapDiagnostic) });
 }

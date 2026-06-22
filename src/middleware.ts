@@ -38,22 +38,31 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("aivory_access_token")?.value;
 
   if (!token) {
-    return NextResponse.redirect(new URL("/admin/signin", request.url));
+    const signinUrl = request.nextUrl.clone();
+    signinUrl.pathname = "/signin";
+    return NextResponse.redirect(signinUrl);
   }
 
   try {
     const payload = jwtDecode<JwtPayload>(token);
 
     if (payload.exp * 1000 < Date.now()) {
-      return NextResponse.redirect(new URL("/admin/signin", request.url));
+      const signinUrl = request.nextUrl.clone();
+      signinUrl.pathname = "/signin";
+      return NextResponse.redirect(signinUrl);
     }
 
     const accountType = resolveAccountType(payload);
     if (!accountType || !["superadmin", "admin"].includes(accountType)) {
-      return NextResponse.redirect(new URL("/admin/signin?error=insufficient_permissions", request.url));
+      const signinUrl = request.nextUrl.clone();
+      signinUrl.pathname = "/signin";
+      signinUrl.searchParams.set("error", "insufficient_permissions");
+      return NextResponse.redirect(signinUrl);
     }
   } catch {
-    return NextResponse.redirect(new URL("/admin/signin", request.url));
+    const signinUrl = request.nextUrl.clone();
+    signinUrl.pathname = "/signin";
+    return NextResponse.redirect(signinUrl);
   }
 
   return NextResponse.next();

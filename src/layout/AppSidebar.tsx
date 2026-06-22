@@ -18,6 +18,7 @@ import {
   DocsIcon,
   TaskIcon,
   ServerIcon,
+  EyeIcon,
 } from "@/icons";
 
 const allNavItems = [
@@ -31,10 +32,10 @@ const allNavItems = [
   { name: "Roadmap", path: "/dashboard/roadmap", icon: <TaskIcon />, superadminOnly: false },
   { name: "Integrations", path: "/dashboard/integrations", icon: <PlugInIcon />, superadminOnly: false },
   { name: "Automation Templates", path: "/dashboard/templates", icon: <BoxCubeIcon />, superadminOnly: false },
-  { name: "Agent Management", path: "/dashboard/agent-management", icon: <BoxCubeIcon />, superadminOnly: false },
   { name: "Careers", path: "/dashboard/careers", icon: <GroupIcon />, superadminOnly: false },
   { name: "Visitor Tracker", path: "/dashboard/visitors", icon: <GridIcon />, superadminOnly: false },
   { name: "Execution Logs", path: "/dashboard/logs", icon: <TableIcon />, superadminOnly: false },
+  { name: "Impersonation History", path: "/dashboard/impersonation-history", icon: <EyeIcon />, superadminOnly: true },
   { name: "VPS Monitoring", path: "/dashboard/vps-monitoring", icon: <ServerIcon />, superadminOnly: false },
   { name: "Admin Accounts", path: "/dashboard/admin-accounts", icon: <GroupIcon />, superadminOnly: true },
   { name: "Settings", path: "/dashboard/settings", icon: <PageIcon />, superadminOnly: false },

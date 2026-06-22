@@ -1,4 +1,5 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 import React, { useState, useEffect, useCallback } from "react";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { CreditUsageChart } from "@/components/dashboard/CreditUsageChart";
@@ -35,7 +36,7 @@ export default function DashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/admin/api/admin/kpi");
+      const res = await bffFetch("/api/admin/kpi");
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = "/admin/signin";

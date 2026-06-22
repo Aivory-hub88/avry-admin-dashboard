@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { bffFetch } from "@/lib/bff";
 
 interface UseUnreadReportsResult {
   count: number;
@@ -19,7 +20,7 @@ export function useUnreadReports(): UseUnreadReportsResult {
 
     async function fetchUnreadCount() {
       try {
-        const res = await fetch("/admin/api/admin/reports?unread=true");
+        const res = await bffFetch("/api/admin/reports?unread=true");
         if (res.ok) {
           const data = await res.json();
           setCount(typeof data.count === "number" ? data.count : 0);

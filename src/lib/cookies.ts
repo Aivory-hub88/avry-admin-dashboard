@@ -21,15 +21,16 @@ export function setCookie(
   if (options.maxAge) cookie += `; max-age=${options.maxAge}`;
   cookie += `; path=${options.path ?? "/"}`;
   
-  // Only set domain if explicitly provided
+  // Only set domain if explicitly provided — omitting it makes the cookie
+  // available on the current host (works with both IP and domain).
   if (options.domain) {
     cookie += `; domain=${options.domain}`;
   }
   
-  // Default to SameSite=Lax (works with HTTP IP access)
+  // Default to SameSite=Lax for same-origin cookies (works with HTTP IP access)
   cookie += `; SameSite=${options.sameSite ?? "Lax"}`;
   
-  // Only add Secure flag if explicitly requested
+  // Only add Secure flag if explicitly requested (not needed for HTTP)
   if (options.secure) {
     cookie += "; Secure";
   }

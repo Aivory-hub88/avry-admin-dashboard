@@ -1,12 +1,12 @@
 /**
  * Microservice base URLs.
  *
- * Server-side runtime env vars (available in API routes / BFF):
- *   BACKEND_SERVICE_URL, BLOG_SERVICE_URL, CAREERS_SERVICE_URL,
- *   DIAGNOSTICS_SERVICE_URL, BLUEPRINT_SERVICE_URL, ROADMAP_SERVICE_URL,
- *   WORKFLOWS_SERVICE_URL, PAYMENTS_SERVICE_URL
+ * In the microservices architecture each domain is its own service. The admin
+ * dashboard BFF routes call these services directly instead of a single
+ * monolith. Each service has a dedicated env var and falls back to the shared
+ * NEXT_PUBLIC_API_URL for local/dev convenience.
  *
- * Falls back to NEXT_PUBLIC_API_URL (baked at build time) for local dev.
+ * No trailing slash.
  */
 
 const SHARED = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -29,9 +29,10 @@ export const SERVICE_URLS = {
 export type ServiceName = keyof typeof SERVICE_URLS;
 
 /**
- * Returns the configured base URL for a service, or null if not configured.
+ * Returns the configured base URL for a service, or null if neither a
+ * service-specific URL nor the shared API URL is set.
  */
 export function getServiceUrl(name: ServiceName): string | null {
   const url = SERVICE_URLS[name];
-  return url || null;
+  return url ? url : null;
 }

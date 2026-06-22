@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import { Inter_Tight } from "next/font/google";
 import "./globals.css";
 import "flatpickr/dist/flatpickr.css";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ImpersonationBanner } from "@/components/impersonation/ImpersonationBanner";
 
-const manrope = Manrope({
+const interTight = Inter_Tight({
   subsets: ["latin"],
-  variable: "--font-manrope",
+  variable: "--font-inter-tight",
 });
 
 export const metadata: Metadata = {
   title: "Aivory Admin",
   description: "Aivory Admin Dashboard",
   icons: {
-    icon: "/admin/favicon.svg",
-    shortcut: "/admin/favicon.svg",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
   },
 };
 
@@ -26,8 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${manrope.variable} font-manrope bg-[#353531]`}>
+      <body className={`${interTight.variable} font-inter-tight bg-[#353531]`}>
         <AuthProvider>
+          <ImpersonationBanner />
           <SidebarProvider>{children}</SidebarProvider>
         </AuthProvider>
       </body>

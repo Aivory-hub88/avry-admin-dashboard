@@ -1,4 +1,5 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -21,7 +22,7 @@ export default function DetailView({ title, recordType, recordId, data, onClose 
   const handleReport = async () => {
     setReportStatus("sending");
     try {
-      const res = await fetch("/admin/api/admin/reports", {
+      const res = await bffFetch("/api/admin/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

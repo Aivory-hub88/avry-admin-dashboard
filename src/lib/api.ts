@@ -22,14 +22,27 @@ export async function apiFetch<T = unknown>(
   if (res.status === 401) {
     deleteCookie("aivory_access_token");
     deleteCookie("aivory_refresh_token");
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && !window.location.pathname.includes("/signin")) {
       window.location.href = "/admin/signin";
     }
     throw new Error("Unauthorized");
   }
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
+    // Attempt to extract the descriptive error message from the response body
+    // FastAPI returns errors as { "detail": "..." }
+    let message = `API error: ${res.status}`;
+    try {
+      const errorBody = await res.json();
+      if (errorBody.detail) {
+        message = errorBody.detail;
+      } else if (errorBody.message) {
+        message = errorBody.message;
+      }
+    } catch {
+      // If body parsing fails, fall through with the generic status message
+    }
+    throw new Error(message);
   }
 
   return res.json() as Promise<T>;

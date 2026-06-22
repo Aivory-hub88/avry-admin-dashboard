@@ -1,4 +1,5 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 
 import React, { useEffect, useState } from "react";
 import { MoreVertical, Shield, ShieldAlert } from "lucide-react";
@@ -38,7 +39,7 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
     setError("");
 
     try {
-      const response = await fetch("/admin/api/admin/list");
+      const response = await bffFetch("/api/admin/admin-accounts");
       const data = await response.json();
 
       if (!response.ok) {

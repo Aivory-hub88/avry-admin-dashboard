@@ -1,4 +1,5 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 import React, { useState, useEffect, useCallback } from "react";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import DetailView from "@/components/shared/DetailView";
@@ -98,7 +99,7 @@ export default function BlueprintsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/admin/api/admin/blueprints");
+      const res = await bffFetch("/api/admin/blueprints");
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = "/admin/signin";

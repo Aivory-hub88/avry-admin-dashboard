@@ -1,4 +1,5 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 import React, { useState, useEffect, useCallback } from "react";
 import LoadingSkeleton from "@/components/shared/LoadingSkeleton";
 import ErrorState from "@/components/shared/ErrorState";
@@ -42,7 +43,7 @@ export default function AdminAccountsPage() {
     setError("");
 
     try {
-      const response = await fetch("/admin/api/admin/list");
+      const response = await bffFetch("/api/admin/admin-accounts");
       const data = await response.json();
 
       if (!response.ok) {

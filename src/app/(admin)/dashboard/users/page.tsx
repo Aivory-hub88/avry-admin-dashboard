@@ -1,10 +1,13 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 import React, { useState, useEffect, useCallback } from "react";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import DetailView from "@/components/shared/DetailView";
 import LoadingSkeleton from "@/components/shared/LoadingSkeleton";
 import ErrorState from "@/components/shared/ErrorState";
 import WriteGate from "@/components/rbac/WriteGate";
+import { ImpersonateButton } from "@/components/impersonation/ImpersonateButton";
+import { ConsentModal } from "@/components/impersonation/ConsentModal";
 
 interface Payment {
   paymentId: string;
@@ -35,37 +38,45 @@ const ACCOUNT_TYPE_OPTIONS = [
   { value: "admin", label: "Admin" },
 ];
 
-const columns: Column<AdminUserView>[] = [
-  { key: "userId", header: "User ID", width: "140px" },
-  { key: "email", header: "Email" },
-  {
-    key: "accountType",
-    header: "Account Type",
-    width: "130px",
-    render: (row) => (
-      <span className="capitalize">{row.accountType}</span>
-    ),
-  },
-  { key: "tier", header: "Tier", width: "110px", render: (row) => <span className="capitalize">{row.tier}</span> },
-  {
-    key: "creditsUsed",
-    header: "Credits Used",
-    width: "120px",
-    render: (row) => row.creditsUsed.toLocaleString(),
-  },
-  {
-    key: "creditsMax",
-    header: "Credits Max",
-    width: "120px",
-    render: (row) => row.creditsMax.toLocaleString(),
-  },
-  {
-    key: "createdAt",
-    header: "Created At",
-    width: "160px",
-    render: (row) => new Date(row.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
-  },
-];
+function getColumns(onImpersonate: (user: AdminUserView) => void): Column<AdminUserView>[] {
+  return [
+    { key: "email", header: "Email" },
+    {
+      key: "accountType",
+      header: "Type",
+      width: "100px",
+      render: (row) => <span className="capitalize">{row.accountType}</span>,
+    },
+    { key: "tier", header: "Tier", width: "90px", render: (row) => <span className="capitalize">{row.tier}</span> },
+    {
+      key: "creditsUsed",
+      header: "Credits",
+      width: "90px",
+      render: (row) => `${row.creditsUsed ?? 0}/${row.creditsMax ?? 0}`,
+    },
+    {
+      key: "createdAt",
+      header: "Created",
+      width: "110px",
+      render: (row) => {
+        if (!row.createdAt) return "—";
+        const d = new Date(row.createdAt);
+        return isNaN(d.getTime()) ? "—" : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      width: "130px",
+      render: (row) => (
+        <ImpersonateButton
+          user={{ userId: row.userId, email: row.email, accountType: row.accountType }}
+          onImpersonate={() => onImpersonate(row)}
+        />
+      ),
+    },
+  ];
+}
 
 export default function UsersPage() {
   const [users, setUsers] = useState<AdminUserView[]>([]);
@@ -74,12 +85,13 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<AdminUserView | null>(null);
   const [accountTypeFilter, setAccountTypeFilter] = useState("all");
   const [emailSearch, setEmailSearch] = useState("");
+  const [impersonateTarget, setImpersonateTarget] = useState<AdminUserView | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/admin/api/admin/users");
+      const res = await bffFetch("/api/admin/users");
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = "/admin/signin";
@@ -121,6 +133,8 @@ export default function UsersPage() {
 
   if (isLoading) return <LoadingSkeleton rows={8} />;
   if (error) return <ErrorState message={error} onRetry={fetchUsers} />;
+
+  const columns = getColumns((user) => setImpersonateTarget(user));
 
   return (
     <div className="space-y-4">
@@ -173,6 +187,23 @@ export default function UsersPage() {
           recordId={selectedUser.userId}
           data={detailData as Record<string, unknown>}
           onClose={() => setSelectedUser(null)}
+        />
+      )}
+
+      {impersonateTarget && (
+        <ConsentModal
+          isOpen={!!impersonateTarget}
+          targetUser={{
+            userId: impersonateTarget.userId,
+            email: impersonateTarget.email,
+          }}
+          onClose={() => setImpersonateTarget(null)}
+          onSuccess={(session) => {
+            // Open user dashboard in new tab after impersonation starts
+            const userDashboardUrl = `http://${window.location.hostname}/dashboard`;
+            window.open(userDashboardUrl, "_blank");
+            setImpersonateTarget(null);
+          }}
         />
       )}
     </div>

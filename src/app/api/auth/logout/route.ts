@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     // ignore parse errors
   }
 
+  // Call backend logout (best-effort)
   try {
     if (refreshToken) {
       await fetch(`${BACKEND_URL}/api/v1/auth/logout`, {
@@ -21,10 +22,12 @@ export async function POST(request: NextRequest) {
       });
     }
   } catch {
-    // ignore
+    // ignore — clear cookies regardless
   }
 
   const response = NextResponse.json({ success: true });
+
+  // Clear both auth cookies
   response.cookies.set("aivory_access_token", "", {
     maxAge: 0,
     path: "/",

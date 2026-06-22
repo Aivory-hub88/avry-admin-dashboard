@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccessToken, proxyToService, unauthorized } from "@/lib/bff";
 
-export interface RoadmapItem {
+export interface RoadmapItem extends Record<string, unknown> {
   id: string;
   userId: string;
   userEmail: string;
   tier: string;
   title: string;
-  category: string;
+  category: "automation" | "integration" | "ai_agent" | "analytics" | "infrastructure";
   priority: "high" | "medium" | "low";
   status: "pending" | "in_progress" | "completed" | "deferred";
   estimatedWeeks: number;
@@ -16,18 +16,34 @@ export interface RoadmapItem {
   updatedAt: string;
 }
 
-function mapRoadmap(r: any): RoadmapItem {
+interface ServiceRoadmap {
+  roadmap_id?: string;
+  user_id?: string;
+  user_email?: string;
+  title?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+function mapRoadmap(r: ServiceRoadmap): RoadmapItem {
+  const status =
+    r.status === "in_progress" ||
+    r.status === "completed" ||
+    r.status === "deferred"
+      ? r.status
+      : "pending";
   return {
-    id: r.roadmap_id ?? r.id ?? "",
+    id: r.roadmap_id ?? "",
     userId: r.user_id ?? "",
-    userEmail: r.user_email ?? r.email ?? "",
+    userEmail: r.user_email ?? "",
     tier: "blueprint",
-    title: r.title ?? r.system_name ?? "Untitled Roadmap",
-    category: r.category ?? "automation",
-    priority: r.priority ?? "medium",
-    status: r.status === "in_progress" || r.status === "completed" || r.status === "deferred" ? r.status : "pending",
-    estimatedWeeks: r.estimated_weeks ?? 4,
-    completionPercent: r.completion_percent ?? 0,
+    title: r.title ?? "AI Readiness Roadmap",
+    category: "automation",
+    priority: "medium",
+    status,
+    estimatedWeeks: 0,
+    completionPercent: status === "completed" ? 100 : 0,
     createdAt: r.created_at ?? "",
     updatedAt: r.updated_at ?? r.created_at ?? "",
   };
@@ -43,15 +59,21 @@ export async function GET(request: NextRequest) {
     token,
   });
 
-  if (result.notConfigured || result.unreachable) {
-    return NextResponse.json([]);
+  if (result.status === 401) return unauthorized();
+  if (result.notConfigured) {
+    return NextResponse.json(
+      { error: "Roadmap service is not configured" },
+      { status: 503 }
+    );
   }
-
   if (!result.ok) {
-    return NextResponse.json([], { status: 200 });
+    return NextResponse.json(
+      { error: "Failed to reach roadmap service" },
+      { status: 502 }
+    );
   }
 
-  const raw = result.data as any;
-  const items = raw?.roadmap ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
-  return NextResponse.json(items.map(mapRoadmap));
+  const data = result.data as { roadmap?: ServiceRoadmap[] } | null;
+  const raw = Array.isArray(data?.roadmap) ? data!.roadmap! : [];
+  return NextResponse.json({ roadmap: raw.map(mapRoadmap) });
 }

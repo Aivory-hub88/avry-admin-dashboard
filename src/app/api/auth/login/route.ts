@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ALLOWED_ACCOUNT_TYPES = ["superadmin", "admin"];
 
+// Backend service URL — available at runtime inside Docker network
 const BACKEND_URL =
   process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
 
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // Call the backend auth service
     const backendRes = await fetch(`${BACKEND_URL}/api/v1/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -48,10 +50,12 @@ export async function POST(request: NextRequest) {
 
     const data = await backendRes.json();
 
+    // The backend returns { user: {...}, tokens: { access_token, refresh_token } }
     const tokens = data.tokens || data;
     const user = data.user || {};
     const accountType = user.account_type || "";
 
+    // Check if user has admin access
     if (!ALLOWED_ACCOUNT_TYPES.includes(accountType)) {
       return NextResponse.json(
         { error: "insufficient_permissions" },

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAccessToken, proxyToService, unauthorized } from "@/lib/bff";
 
-interface WorkflowRun {
+interface WorkflowRun extends Record<string, unknown> {
   workflowId: string;
   workflowName: string;
   userId: string;
@@ -11,14 +11,26 @@ interface WorkflowRun {
   error?: string;
 }
 
-function mapWorkflow(w: any): WorkflowRun {
+interface ServiceWorkflow {
+  workflow_id?: string;
+  name?: string;
+  user_id?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  error?: string;
+}
+
+function mapWorkflow(w: ServiceWorkflow): WorkflowRun {
+  const status =
+    w.status === "active" || w.status === "error" ? w.status : "inactive";
   return {
-    workflowId: w.workflow_id ?? w.id ?? "",
+    workflowId: w.workflow_id ?? "",
     workflowName: w.name ?? "Untitled Workflow",
     userId: w.user_id ?? "",
-    status: w.status === "active" || w.status === "error" ? w.status : "inactive",
+    status,
     triggeredAt: w.updated_at ?? w.created_at ?? "",
-    durationMs: w.duration_ms ?? 0,
+    durationMs: 0,
     ...(w.error ? { error: w.error } : {}),
   };
 }
@@ -33,15 +45,21 @@ export async function GET(request: NextRequest) {
     token,
   });
 
-  if (result.notConfigured || result.unreachable) {
-    return NextResponse.json([]);
+  if (result.status === 401) return unauthorized();
+  if (result.notConfigured) {
+    return NextResponse.json(
+      { error: "Workflows service is not configured" },
+      { status: 503 }
+    );
   }
-
   if (!result.ok) {
-    return NextResponse.json([], { status: 200 });
+    return NextResponse.json(
+      { error: "Failed to reach workflows service" },
+      { status: 502 }
+    );
   }
 
-  const raw = result.data as any;
-  const items = raw?.workflows ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
-  return NextResponse.json(items.map(mapWorkflow));
+  const data = result.data as { workflows?: ServiceWorkflow[] } | null;
+  const raw = Array.isArray(data?.workflows) ? data!.workflows! : [];
+  return NextResponse.json({ workflows: raw.map(mapWorkflow) });
 }

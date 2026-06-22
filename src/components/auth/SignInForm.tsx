@@ -3,6 +3,7 @@ import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
 import { setCookie } from "@/lib/cookies";
+import { bffFetch } from "@/lib/bff";
 import { decodeJwt } from "@/lib/jwt";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, Suspense } from "react";
@@ -31,7 +32,7 @@ function SignInFormInner() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/admin/api/auth/login", {
+      const res = await bffFetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -69,12 +70,12 @@ function SignInFormInner() {
 
       setCookie("aivory_access_token", access_token, { 
         maxAge: 3600,
-        domain: undefined,
+        path: "/",
         sameSite: "Lax",
       });
       setCookie("aivory_refresh_token", refresh_token, { 
         maxAge: 604800,
-        domain: undefined,
+        path: "/",
         sameSite: "Lax",
       });
 

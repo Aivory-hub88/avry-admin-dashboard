@@ -1,4 +1,5 @@
 "use client";
+import { bffFetch } from "@/lib/bff";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import LoadingSkeleton from "@/components/shared/LoadingSkeleton";
 import ErrorState from "@/components/shared/ErrorState";
@@ -28,7 +29,7 @@ export default function TemplatesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("/admin/api/admin/templates");
+      const res = await bffFetch("/api/admin/templates");
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = "/admin/signin";

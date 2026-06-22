@@ -1,3 +1,5 @@
+import { bffFetch } from "@/lib/bff";
+
 /**
  * Monitoring API client library.
  *
@@ -51,7 +53,7 @@ export async function queryPrometheus(
   if (options.step) params.set("step", options.step);
   if (options.userId) params.set("userId", options.userId);
 
-  const res = await fetch(`/admin/api/admin/vps-monitoring?${params.toString()}`);
+  const res = await bffFetch(`/api/admin/vps-monitoring?${params.toString()}`);
 
   if (res.status === 401) {
     window.location.href = "/admin/signin";
@@ -89,7 +91,7 @@ export async function queryRange(
  * Fetch list of users with active containers for the user selector.
  */
 export async function fetchMonitoringUsers(): Promise<MonitoringUser[]> {
-  const res = await fetch("/admin/api/admin/vps-monitoring/users");
+  const res = await bffFetch("/api/admin/vps-monitoring/users");
 
   if (res.status === 401) {
     window.location.href = "/admin/signin";

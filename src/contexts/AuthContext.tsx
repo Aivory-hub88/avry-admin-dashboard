@@ -9,6 +9,7 @@ import {
   getUserId,
 } from "@/lib/jwt";
 import { getCookie, deleteCookie } from "@/lib/cookies";
+import { bffFetch } from "@/lib/bff";
 
 interface AuthUser {
   userId: string;
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     const refreshToken = getCookie("aivory_refresh_token");
     try {
-      await fetch("/admin/api/auth/logout", {
+      await bffFetch("/api/auth/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken ?? "" }),

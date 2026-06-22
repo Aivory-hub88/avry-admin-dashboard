@@ -1,28 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAccessToken, proxyToService, unauthorized } from "@/lib/bff";
 
 export async function GET(request: NextRequest) {
-  const token = getAccessToken(request);
-  if (!token) return unauthorized();
+  const token = request.cookies.get("aivory_access_token")?.value;
 
-  // Try backend first
-  const result = await proxyToService({ service: "backend", path: "/api/v1/agents", token });
-  
-  if (result.ok && result.data) {
-    const raw = result.data as any;
-    const agents = raw?.agents ?? raw?.data ?? (Array.isArray(raw) ? raw : []);
-    return NextResponse.json(agents.map((a: any) => ({
-      agentId: a.agent_id ?? a.id ?? "",
-      agentName: a.name ?? "Unnamed Agent",
-      userId: a.user_id ?? "",
-      status: a.status ?? "inactive",
-      totalRuns: a.total_runs ?? 0,
-      successRate: a.success_rate ?? 0,
-      lastRunAt: a.last_run_at ?? a.updated_at ?? "",
-      createdAt: a.created_at ?? "",
-    })));
+  if (!token) {
+    const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    response.cookies.delete("aivory_access_token");
+    response.cookies.delete("aivory_refresh_token");
+    return response;
   }
 
-  // Fallback to empty
-  return NextResponse.json([]);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (apiUrl) {
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/admin/agents`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.status === 401) {
+        const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        response.cookies.delete("aivory_access_token");
+        response.cookies.delete("aivory_refresh_token");
+        return response;
+      }
+
+      if (res.ok) {
+        const data = await res.json();
+        return NextResponse.json(data);
+      }
+    } catch {
+      // Backend not reachable — return empty response
+    }
+  }
+
+  return NextResponse.json({ agents: [] });
 }

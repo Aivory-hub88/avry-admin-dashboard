@@ -9,6 +9,7 @@ import VisitorsTopPagesTable from "@/components/visitors/VisitorsTopPagesTable";
 import { VisitorsByCountryChart } from "@/components/dashboard/VisitorsByCountryChart";
 import { VisitorsDailyChart } from "@/components/dashboard/VisitorsDailyChart";
 import { VisitorAggregate, VisitRange } from "@/lib/aggregateVisits";
+import { bffFetch } from "@/lib/bff";
 
 export default function VisitorsPage() {
   const [aggregate, setAggregate] = useState<VisitorAggregate | null>(null);
@@ -20,7 +21,7 @@ export default function VisitorsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/admin/api/admin/visitors?range=${r}`);
+      const res = await bffFetch(`/api/admin/visitors?range=${r}`);
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = "/admin/signin";
