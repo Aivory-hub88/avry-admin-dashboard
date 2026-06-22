@@ -25,6 +25,7 @@ const allNavItems = [
   { name: "Overview", path: "/dashboard", icon: <GridIcon />, superadminOnly: false },
   { name: "Users & Credits", path: "/dashboard/users", icon: <UserCircleIcon />, superadminOnly: false },
   { name: "Agent Activity", path: "/dashboard/agents", icon: <BoxCubeIcon />, superadminOnly: false },
+  { name: "Agent Management", path: "/dashboard/agent-management", icon: <BoxCubeIcon />, superadminOnly: false },
   { name: "Workflow Runs", path: "/dashboard/workflows", icon: <ListIcon />, superadminOnly: false },
   { name: "Deep Diagnostics", path: "/dashboard/diagnostics", icon: <PieChartIcon />, superadminOnly: false },
   { name: "Blueprints", path: "/dashboard/blueprints", icon: <DocsIcon />, superadminOnly: false },
