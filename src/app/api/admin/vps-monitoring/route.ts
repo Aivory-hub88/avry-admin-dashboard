@@ -120,7 +120,7 @@ const VPS_PANEL_URL =
 const VPS_PANEL_API_TOKEN = process.env.VPS_PANEL_API_TOKEN;
 
 // Request timeout for VPS Panel calls (15 seconds)
-const FETCH_TIMEOUT_MS = 15_000;
+const FETCH_TIMEOUT_MS = 15000;
 
 // ─── User ID Validation ──────────────────────────────────────────────────────
 
@@ -149,19 +149,28 @@ function getRequestMode(type: string | null): RequestMode {
 
 async function fetchVpsPanel(
   path: string,
-  params?: URLSearchParams
+  params?: URLSearchParams,
+  retries = 2
 ): Promise<Response> {
   const url = params && params.toString()
     ? `${VPS_PANEL_URL}${path}?${params.toString()}`
     : `${VPS_PANEL_URL}${path}`;
 
-  return fetch(url, {
-    headers: {
-      Authorization: `Bearer ${VPS_PANEL_API_TOKEN}`,
-      Accept: "application/json",
-    },
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  });
+  try {
+    return await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${VPS_PANEL_API_TOKEN}`,
+        Accept: "application/json",
+      },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return fetchVpsPanel(path, params, retries - 1);
+    }
+    throw error;
+  }
 }
 
 /**
