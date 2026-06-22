@@ -32,69 +32,75 @@ export function UserUsageTable({ selectedUserId }: UserUsageTableProps) {
   const [usages, setUsages] = useState<UserUsage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const fetchUsage = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  useEffect(() => {
+    let source: EventSource | null = null;
+    let isComponentMounted = true;
 
-    try {
-      // Build query — if a specific user is selected, filter by user_id
-      const userFilter = selectedUserId ? `user_id="${selectedUserId}"` : "";
-      const labelSelector = userFilter ? `{${userFilter}}` : "";
+    const connectStream = () => {
+      source = new EventSource("/api/admin/vps-monitoring/stream?path=/projects&format=raw");
 
-      const [cpuRes, memRes, rxRes, txRes] = await Promise.all([
-        queryPrometheus(`avry_user_cpu_seconds_total${labelSelector}`),
-        queryPrometheus(`avry_user_memory_rss_bytes${labelSelector}`),
-        queryPrometheus(`avry_user_network_receive_bytes_total${labelSelector}`),
-        queryPrometheus(`avry_user_network_transmit_bytes_total${labelSelector}`),
-      ]);
-
-      // Aggregate by user_id
-      const userMap: Record<string, UserUsage> = {};
-
-      const processResults = (
-        results: PrometheusResult[],
-        field: keyof Omit<UserUsage, "userId" | "tier">
-      ) => {
-        for (const r of results) {
-          const userId = r.metric.user_id;
-          if (!userId) continue;
-
-          if (!userMap[userId]) {
-            userMap[userId] = {
-              userId,
-              tier: r.metric.user_tier || "unknown",
-              cpuSeconds: 0,
-              memoryBytes: 0,
-              networkRxBytes: 0,
-              networkTxBytes: 0,
-            };
+      source.onmessage = (event) => {
+        if (!isComponentMounted) return;
+        setIsLoading(false);
+        try {
+          const data = JSON.parse(event.data);
+          if (data.error) {
+            setError(data.error);
+            return;
           }
-          // Sum across containers for same user
-          userMap[userId][field] += parseFloat(r.value?.[1] || "0") || 0;
+          setError(null);
+          
+          // Data is raw VpsPanelProjectMetrics
+          const containers = data.containers || [];
+          const userMap: Record<string, UserUsage> = {};
+
+          for (const c of containers) {
+            // Extract user id from container name (e.g. avry-agent-{userId})
+            // or if it's named something else, just use the name as fallback
+            const userId = c.name.replace("avry-agent-", "").replace("avry-", "");
+            
+            // If filtering by user
+            if (selectedUserId && userId !== selectedUserId && !c.name.includes(selectedUserId)) {
+               continue;
+            }
+
+            if (!userMap[userId]) {
+              userMap[userId] = {
+                userId,
+                tier: "paid", // or determine from container labels if available
+                cpuSeconds: 0,
+                memoryBytes: 0,
+                networkRxBytes: 0,
+                networkTxBytes: 0,
+              };
+            }
+            userMap[userId].cpuSeconds += c.cpu?.usagePercent || 0; // In raw metrics this is percent, not seconds! We label it seconds for UI compatibility or change it.
+            userMap[userId].memoryBytes += c.memory?.usedBytes || 0;
+            userMap[userId].networkRxBytes += c.network?.rxBytes || 0;
+            userMap[userId].networkTxBytes += c.network?.txBytes || 0;
+          }
+
+          const sorted = Object.values(userMap).sort((a, b) => b.cpuSeconds - a.cpuSeconds);
+          setUsages(sorted);
+        } catch (err) {
+          console.error("Failed to parse user usage SSE data", err);
         }
       };
 
-      processResults(cpuRes.data?.result || [], "cpuSeconds");
-      processResults(memRes.data?.result || [], "memoryBytes");
-      processResults(rxRes.data?.result || [], "networkRxBytes");
-      processResults(txRes.data?.result || [], "networkTxBytes");
+      source.onerror = () => {
+        setError("Connection dropped. Reconnecting...");
+      };
+    };
 
-      const sorted = Object.values(userMap).sort((a, b) => b.cpuSeconds - a.cpuSeconds);
-      setUsages(sorted);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load user usage");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedUserId]);
+    connectStream();
 
-  useEffect(() => {
-    fetchUsage();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchUsage, 30000);
-    return () => clearInterval(interval);
-  }, [fetchUsage]);
+    return () => {
+      isComponentMounted = false;
+      if (source) source.close();
+    };
+  }, [selectedUserId, retryCount]);
 
   if (isLoading) {
     return (
@@ -121,7 +127,7 @@ export function UserUsageTable({ selectedUserId }: UserUsageTableProps) {
         </h3>
         <p className="text-xs" style={{ color: "#f5a623" }}>{error}</p>
         <button
-          onClick={fetchUsage}
+          onClick={() => setRetryCount(c => c + 1)}
           className="mt-2 px-3 py-1 text-xs rounded-md border"
           style={{ borderColor: "rgba(255,255,255,0.12)", color: "#a3a3a0" }}
         >

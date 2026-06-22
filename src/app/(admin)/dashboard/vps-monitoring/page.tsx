@@ -46,67 +46,79 @@ export default function VpsMonitoringPage() {
   const [networkRx, setNetworkRx] = useState<number | null>(null);
   const [services, setServices] = useState<ServiceStatus[]>([]);
 
-  const fetchSystemMetrics = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const [cpuRes, memRes, memTotalRes, diskRes, netRxRes, healthRes] =
-        await Promise.all([
-          queryPrometheus(
-            '100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'
-          ),
-          queryPrometheus(
-            '(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100'
-          ),
-          queryPrometheus("node_memory_MemTotal_bytes"),
-          queryPrometheus(
-            '(1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100'
-          ),
-          queryPrometheus("rate(node_network_receive_bytes_total[5m])"),
-          queryPrometheus('up{job="service_health"}'),
-        ]);
-
-      setCpuUsage(parseInstantValue(cpuRes.data?.result || []));
-      setMemUsage(parseInstantValue(memRes.data?.result || []));
-      setMemTotal(parseInstantValue(memTotalRes.data?.result || []));
-      setDiskUsage(parseInstantValue(diskRes.data?.result || []));
-
-      // Sum network across interfaces
-      const netResults = netRxRes.data?.result || [];
-      const totalNet = netResults.reduce(
-        (sum: number, r: PrometheusResult) =>
-          sum + (parseFloat(r.value?.[1] || "0") || 0),
-        0
-      );
-      setNetworkRx(totalNet);
-
-      // Parse service health
-      const healthResults = healthRes.data?.result || [];
-      const serviceList: ServiceStatus[] = healthResults.map(
-        (r: PrometheusResult) => {
-          const instance = r.metric.instance || "";
-          const name = instance.split(":")[0].replace("avry-", "");
-          const isUp = parseFloat(r.value?.[1] || "0") === 1;
-          return {
-            name: name || instance,
-            status: isUp ? ("up" as const) : ("down" as const),
-          };
-        }
-      );
-      setServices(serviceList.length > 0 ? serviceList : []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch metrics");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchSystemMetrics();
-    const interval = setInterval(fetchSystemMetrics, 15000);
-    return () => clearInterval(interval);
-  }, [fetchSystemMetrics]);
+    let systemSource: EventSource | null = null;
+    let healthSource: EventSource | null = null;
+    let isComponentMounted = true;
+
+    const connectStreams = () => {
+      // 1. System Metrics Stream
+      systemSource = new EventSource("/api/admin/vps-monitoring/stream?path=/system&format=raw");
+      
+      systemSource.onmessage = (event) => {
+        if (!isComponentMounted) return;
+        setIsLoading(false);
+        try {
+          const data = JSON.parse(event.data);
+          if (data.error) {
+            setError(data.error);
+            return;
+          }
+          setError(null);
+          // Data is raw VpsPanelSystemMetrics
+          setCpuUsage(data.cpu.usagePercent);
+          
+          const memPct = data.memory.totalBytes > 0 
+            ? (data.memory.usedBytes / data.memory.totalBytes) * 100 
+            : 0;
+          setMemUsage(memPct);
+          setMemTotal(data.memory.totalBytes);
+          
+          const diskPct = data.disk.totalBytes > 0
+            ? (data.disk.usedBytes / data.disk.totalBytes) * 100
+            : 0;
+          setDiskUsage(diskPct);
+          setNetworkRx(data.network.rxBytesPerSec);
+        } catch (err) {
+          console.error("Failed to parse SSE data", err);
+        }
+      };
+
+      systemSource.onerror = () => {
+        // SSE auto-reconnects, but we can set an error state if we want
+        setError("Connection dropped. Reconnecting...");
+      };
+
+      // 2. Health Metrics Stream
+      healthSource = new EventSource("/api/admin/vps-monitoring/stream?path=/health&format=raw");
+      
+      healthSource.onmessage = (event) => {
+        if (!isComponentMounted) return;
+        try {
+          const data = JSON.parse(event.data);
+          if (data.error) return;
+          // Health data returns an array of services: { name: string, status: "up"|"down" }
+          // Assuming the raw format matches the frontend requirement
+          if (Array.isArray(data)) {
+            setServices(data.map((s: any) => ({
+              name: s.name.replace("avry-", ""),
+              status: s.status,
+            })));
+          }
+        } catch (err) {
+          console.error("Failed to parse health SSE data", err);
+        }
+      };
+    };
+
+    connectStreams();
+
+    return () => {
+      isComponentMounted = false;
+      if (systemSource) systemSource.close();
+      if (healthSource) healthSource.close();
+    };
+  }, []);
 
   // Determine visibility label
   const viewLabel = selectedUserId

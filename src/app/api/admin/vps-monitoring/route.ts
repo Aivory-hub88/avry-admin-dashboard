@@ -67,6 +67,26 @@ interface VpsPanelProjectMetrics {
   timestamp: string;
 }
 
+export interface VpsPanelSystemMetrics {
+  timestamp: string;
+  cpu: {
+    usagePercent: number;
+    cores: number;
+  };
+  memory: {
+    totalBytes: number;
+    usedBytes: number;
+  };
+  disk: {
+    totalBytes: number;
+    usedBytes: number;
+  };
+  network: {
+    rxBytesPerSec: number;
+    txBytesPerSec: number;
+  };
+}
+
 interface VpsPanelHistoryPoint {
   timestamp: string;
   cpu: { usagePercent: number };
@@ -147,7 +167,7 @@ function getRequestMode(type: string | null): RequestMode {
 
 // ─── VPS Panel Fetch Helper ──────────────────────────────────────────────────
 
-async function fetchVpsPanel(
+export async function fetchVpsPanel(
   path: string,
   params?: URLSearchParams,
   retries = 2
@@ -177,7 +197,7 @@ async function fetchVpsPanel(
  * Detect whether a parsed JSON response is already in Prometheus format
  * (i.e., has `status` and `data.resultType` fields).
  */
-function isPrometheusFormat(body: unknown): boolean {
+export function isPrometheusFormat(body: unknown): boolean {
   if (typeof body !== "object" || body === null) return false;
   const obj = body as Record<string, unknown>;
   return (
@@ -192,7 +212,7 @@ function isPrometheusFormat(body: unknown): boolean {
  * Detect whether a parsed JSON response is in VPS Panel envelope format
  * (i.e., has `success` boolean and `data` field with metrics).
  */
-function isVpsPanelEnvelope(body: unknown): boolean {
+export function isVpsPanelEnvelope(body: unknown): boolean {
   if (typeof body !== "object" || body === null) return false;
   const obj = body as Record<string, unknown>;
   return typeof obj.success === "boolean" && "data" in obj;
@@ -204,7 +224,7 @@ function isVpsPanelEnvelope(body: unknown): boolean {
 // ─── VPS Panel Response Transformers ─────────────────────────────────────────
 // containersToPrometheus imported from @/lib/monitoring-transforms
 
-function systemMetricsToPrometheus(
+export function systemMetricsToPrometheus(
   metrics: VpsPanelSystemMetrics,
   query: string
 ): object {
@@ -480,7 +500,7 @@ export async function GET(request: NextRequest) {
 
 // ─── Direct VPS Panel Handler ────────────────────────────────────────────────
 
-async function handleVpsPanelDirect(
+export async function handleVpsPanelDirect(
   requestType: VpsPanelRequestType,
   params: {
     query: string | null;
@@ -489,6 +509,7 @@ async function handleVpsPanelDirect(
     step: string | null;
     resolution: string | null;
     userId: string | null;
+    format?: string | null;
   }
 ): Promise<NextResponse> {
   try {
@@ -511,6 +532,9 @@ async function handleVpsPanelDirect(
               { error: envelope.error || "VPS Panel error", code: envelope.code },
               { status: 502 }
             );
+          }
+          if (params.format !== "prometheus") {
+            return NextResponse.json(envelope.data);
           }
           const transformed = systemMetricsToPrometheus(envelope.data, params.query || "");
           return NextResponse.json(transformed);
