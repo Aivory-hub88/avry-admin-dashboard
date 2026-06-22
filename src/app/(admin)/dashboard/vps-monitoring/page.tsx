@@ -12,6 +12,7 @@ import {
   parseInstantValue,
   PrometheusResult,
 } from "@/lib/monitoring";
+import { BASE_PATH } from "@/lib/bff";
 
 interface ServiceStatus {
   name: string;
@@ -53,7 +54,7 @@ export default function VpsMonitoringPage() {
 
     const connectStreams = () => {
       // 1. System Metrics Stream
-      systemSource = new EventSource("/api/admin/vps-monitoring/stream?path=/system&format=raw");
+      systemSource = new EventSource(`${BASE_PATH}/api/admin/vps-monitoring/stream?path=/system&format=raw`);
       
       systemSource.onmessage = (event) => {
         if (!isComponentMounted) return;
@@ -90,7 +91,7 @@ export default function VpsMonitoringPage() {
       };
 
       // 2. Health Metrics Stream
-      healthSource = new EventSource("/api/admin/vps-monitoring/stream?path=/health&format=raw");
+      healthSource = new EventSource(`${BASE_PATH}/api/admin/vps-monitoring/stream?path=/health&format=raw`);
       
       healthSource.onmessage = (event) => {
         if (!isComponentMounted) return;

@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { queryPrometheus, PrometheusResult } from "@/lib/monitoring";
+import { BASE_PATH } from "@/lib/bff";
 
 interface UserUsage {
   userId: string;
@@ -39,7 +40,7 @@ export function UserUsageTable({ selectedUserId }: UserUsageTableProps) {
     let isComponentMounted = true;
 
     const connectStream = () => {
-      source = new EventSource("/api/admin/vps-monitoring/stream?path=/projects&format=raw");
+      source = new EventSource(`${BASE_PATH}/api/admin/vps-monitoring/stream?path=/projects&format=raw`);
 
       source.onmessage = (event) => {
         if (!isComponentMounted) return;
