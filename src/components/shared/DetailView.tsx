@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
-export type RecordType = "user" | "agent" | "workflow" | "log" | "integration" | "diagnostic" | "blueprint" | "roadmap";
+export type RecordType = "user" | "agent" | "workflow" | "log" | "integration" | "diagnostic" | "blueprint" | "roadmap" | "impersonation_session";
 
 interface DetailViewProps {
   title: string;
