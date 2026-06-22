@@ -102,10 +102,10 @@ export function DeactivateModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+      <div className="relative bg-[#2a2a27] rounded-lg shadow-xl w-full max-w-md p-6">
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-300"
         >
           <X size={20} />
         </button>
@@ -127,7 +127,7 @@ export function DeactivateModal({
               </h2>
             </div>
 
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-400 mb-4">
               {banDuration === "reactivate"
                 ? `Are you sure you want to reactivate ${adminEmail}?`
                 : `Are you sure you want to deactivate ${adminEmail}?`}
@@ -136,7 +136,7 @@ export function DeactivateModal({
             <form onSubmit={handleSubmit} className="space-y-4">
               {banDuration !== "reactivate" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Deactivation Duration
                   </label>
                   <div className="space-y-2">
@@ -148,7 +148,7 @@ export function DeactivateModal({
                     ].map((option) => (
                       <label
                         key={option.value}
-                        className="flex items-center gap-2 p-2 border rounded-md cursor-pointer hover:bg-gray-50"
+                        className="flex items-center gap-2 p-2 border rounded-md cursor-pointer hover:bg-white/5"
                       >
                         <input
                           type="radio"
@@ -175,7 +175,7 @@ export function DeactivateModal({
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 border border-white/10 text-gray-300 rounded-md hover:bg-white/5"
                 >
                   Cancel
                 </button>

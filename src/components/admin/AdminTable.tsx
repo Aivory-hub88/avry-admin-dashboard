@@ -80,7 +80,7 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading admins...</div>
+        <div className="text-gray-400">Loading admins...</div>
       </div>
     );
   }
@@ -88,7 +88,7 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-red-600">{error}</div>
+        <div className="text-red-400">{error}</div>
       </div>
     );
   }
@@ -98,27 +98,27 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b">
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+            <tr className="border-b border-white/10">
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">
                 Name
               </th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">
                 Email
               </th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">
                 Type
               </th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">
                 Created By
               </th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">
                 Created At
               </th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+              <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">
                 Status
               </th>
               {isSuperAdmin && (
-                <th className="text-right py-3 px-4 text-sm font-medium text-gray-700">
+                <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">
                   Actions
                 </th>
               )}
@@ -129,34 +129,34 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
               <tr>
                 <td
                   colSpan={isSuperAdmin ? 7 : 6}
-                  className="text-center py-12 text-gray-500"
+                  className="text-center py-12 text-gray-400"
                 >
                   No admins found
                 </td>
               </tr>
             ) : (
               admins.map((admin) => (
-                <tr key={admin.id} className="border-b hover:bg-gray-50">
+                <tr key={admin.id} className="border-b border-white/10 hover:bg-white/5">
                   <td className="py-3 px-4 text-sm">
                     <div className="font-medium">{admin.full_name}</div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
+                  <td className="py-3 px-4 text-sm text-gray-300">
                     {admin.email}
                   </td>
                   <td className="py-3 px-4 text-sm">
                     <div className="flex items-center gap-1">
                       {admin.account_type === "superadmin" ? (
-                        <ShieldAlert className="text-purple-600" size={16} />
+                        <ShieldAlert className="text-[#b688ff]" size={16} />
                       ) : (
-                        <Shield className="text-blue-600" size={16} />
+                        <Shield className="text-[#4db8ff]" size={16} />
                       )}
                       <span className="capitalize">{admin.account_type}</span>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
+                  <td className="py-3 px-4 text-sm text-gray-300">
                     {admin.created_by}
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-600">
+                  <td className="py-3 px-4 text-sm text-gray-300">
                     {formatDate(admin.created_at)}
                   </td>
                   <td className="py-3 px-4 text-sm">
@@ -179,23 +179,23 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                               showMenu === admin.id ? null : admin.id
                             )
                           }
-                          className="p-2 hover:bg-gray-100 rounded-md"
+                          className="p-2 hover:bg-white/10 rounded-md"
                         >
                           <MoreVertical size={16} />
                         </button>
                         {showMenu === admin.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
+                          <div className="absolute right-0 mt-2 w-48 bg-[#2a2a27] border border-white/10 rounded-md shadow-lg z-10">
                             {admin.ban_duration ? (
                               <button
                                 onClick={() => handleReactivate(admin)}
-                                className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-gray-50"
+                                className="w-full px-4 py-2 text-left text-sm text-[#00e59e] hover:bg-white/5"
                               >
                                 Reactivate
                               </button>
                             ) : (
                               <button
                                 onClick={() => handleDeactivate(admin)}
-                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
+                                className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-white/5"
                               >
                                 Deactivate
                               </button>

@@ -152,10 +152,10 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+      <div className="relative bg-[#2a2a27] rounded-lg shadow-xl w-full max-w-md p-6">
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-300"
         >
           <X size={20} />
         </button>
@@ -168,7 +168,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
               ✓ Admin created successfully!
             </div>
             {autoGeneratePassword && (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-400">
                 Please share the password with the admin.
               </div>
             )}
@@ -176,28 +176,28 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Full Name
               </label>
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="John Doe"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="admin@example.com"
                 required
               />
@@ -205,7 +205,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-gray-300">
                   Password
                 </label>
                 <button
@@ -222,7 +222,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
               {autoGeneratePassword ? (
                 <div className="space-y-2">
                   <div className="flex gap-2">
-                    <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md font-mono text-sm">
+                    <div className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-md font-mono text-sm">
                       {generatedPassword || "Click Generate"}
                     </div>
                     <button
@@ -238,7 +238,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
                     <button
                       type="button"
                       onClick={handleCopyPassword}
-                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+                      className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-200"
                     >
                       <Copy size={16} />
                       {copySuccess ? "Copied!" : "Copy password"}
@@ -252,14 +252,14 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                      className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                       placeholder="Enter password"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xs"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 text-xs"
                     >
                       {showPassword ? "Hide" : "Show"}
                     </button>
@@ -271,7 +271,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                      className="w-full px-3 py-2 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                       placeholder="Confirm password"
                       required
                     />
@@ -280,7 +280,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xs"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 text-xs"
                     >
                       {showConfirmPassword ? "Hide" : "Show"}
                     </button>
@@ -297,7 +297,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: CreateAdminModa
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                className="flex-1 px-4 py-2 border border-white/10 text-gray-300 rounded-md hover:bg-white/5"
               >
                 Cancel
               </button>
