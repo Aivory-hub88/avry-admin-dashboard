@@ -98,12 +98,11 @@ export default function VpsMonitoringPage() {
         try {
           const data = JSON.parse(event.data);
           if (data.error) return;
-          // Health data returns an array of services: { name: string, status: "up"|"down" }
-          // Assuming the raw format matches the frontend requirement
+          // Health data returns an array of containers from vps-panel
           if (Array.isArray(data)) {
             setServices(data.map((s: any) => ({
               name: s.name.replace("avry-", ""),
-              status: s.status,
+              status: s.status === "running" ? "up" : s.status === "exited" ? "down" : "unknown",
             })));
           }
         } catch (err) {

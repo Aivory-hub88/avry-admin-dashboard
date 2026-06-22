@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
   // Map path to request type
   let requestType: VpsPanelRequestType = "system";
-  if (path.includes("containers")) requestType = "containers";
+  if (path.includes("containers") || path.includes("health")) requestType = "containers";
   else if (path.includes("projects")) requestType = "project";
   else if (path.includes("history")) requestType = "history";
 

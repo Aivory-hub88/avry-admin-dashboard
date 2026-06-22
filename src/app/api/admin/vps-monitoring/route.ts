@@ -618,11 +618,15 @@ export async function handleVpsPanelDirect(
               { status: 502 }
             );
           }
+          if (params.format === "raw") {
+            return NextResponse.json(envelope.data);
+          }
           return NextResponse.json(containersToPrometheus(envelope.data));
         }
 
         // If raw array (no envelope), transform directly
         if (Array.isArray(body)) {
+          if (params.format === "raw") return NextResponse.json(body);
           return NextResponse.json(containersToPrometheus(body));
         }
 

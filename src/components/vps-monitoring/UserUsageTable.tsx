@@ -40,7 +40,7 @@ export function UserUsageTable({ selectedUserId }: UserUsageTableProps) {
     let isComponentMounted = true;
 
     const connectStream = () => {
-      source = new EventSource(`${BASE_PATH}/api/admin/vps-monitoring/stream?path=/projects&format=raw`);
+      source = new EventSource(`${BASE_PATH}/api/admin/vps-monitoring/stream?path=/containers&format=raw`);
 
       source.onmessage = (event) => {
         if (!isComponentMounted) return;
@@ -53,8 +53,8 @@ export function UserUsageTable({ selectedUserId }: UserUsageTableProps) {
           }
           setError(null);
           
-          // Data is raw VpsPanelProjectMetrics
-          const containers = data.containers || [];
+          // Data is raw array of containers
+          const containers = Array.isArray(data) ? data : (data.containers || []);
           const userMap: Record<string, UserUsage> = {};
 
           for (const c of containers) {
