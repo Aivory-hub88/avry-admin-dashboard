@@ -405,8 +405,9 @@ function extractMetricName(query: string): string {
 function stepToResolution(step: string | null): string | undefined {
   if (!step) return "5m"; // default to 5m which is the most common stored resolution
   const stepSeconds = parseStepToSeconds(step);
+  if (stepSeconds <= 60) return "1m";
   if (stepSeconds <= 300) return "5m";
-  if (stepSeconds <= 900) return "5m";
+  if (stepSeconds <= 900) return "15m";
   return "1h";
 }
 
