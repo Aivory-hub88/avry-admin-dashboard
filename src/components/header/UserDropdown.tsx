@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 
@@ -132,6 +133,45 @@ export default function UserDropdown() {
             </div>
           )}
         </div>
+
+        {/* Settings */}
+        <Link
+          href="/dashboard/settings"
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+          onClick={closeDropdown}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M12 4.5C7.85786 4.5 4.5 7.85786 4.5 12C4.5 16.1421 7.85786 19.5 12 19.5C16.1421 19.5 19.5 16.1421 19.5 12C19.5 7.85786 16.1421 4.5 12 4.5ZM3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12ZM12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5ZM10 12C10 10.8954 10.8954 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12Z"
+              fill="currentColor"
+            />
+          </svg>
+          Settings
+        </Link>
+
+        {/* Admin Accounts (Superadmin only) */}
+        {role === "superadmin" && (
+          <Link
+            href="/dashboard/admin-accounts"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+            onClick={closeDropdown}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M12 4.5C10.067 4.5 8.5 6.067 8.5 8C8.5 9.933 10.067 11.5 12 11.5C13.933 11.5 15.5 9.933 15.5 8C15.5 6.067 13.933 4.5 12 4.5ZM7 8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8C17 10.7614 14.7614 13 12 13C9.23858 13 7 10.7614 7 8ZM5.25 21V19C5.25 16.6528 7.15279 14.75 9.5 14.75H14.5C16.8472 14.75 18.75 16.6528 18.75 19V21H20.25V19C20.25 15.8244 17.6756 13.25 14.5 13.25H9.5C6.32436 13.25 3.75 15.8244 3.75 19V21H5.25Z"
+                fill="currentColor"
+              />
+            </svg>
+            Admin Accounts
+          </Link>
+        )}
+
+        {/* Divider */}
+        <div className="h-px bg-white/[0.07] my-1 mx-1" />
 
         {/* Sign out */}
         <button
