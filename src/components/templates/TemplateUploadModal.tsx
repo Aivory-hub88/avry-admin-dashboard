@@ -195,7 +195,7 @@ export default function TemplateUploadModal({
           background: "var(--color-bg-elevated, #3a3a36)",
           borderColor: "var(--color-border-soft, rgba(255,255,255,0.07))",
           color: "var(--color-text-primary, #f7f7f7)",
-          fontFamily: "var(--font-inter-tight, 'Inter Tight', Inter, sans-serif)",
+          fontFamily: "var(--font-manrope-tight, 'Inter Tight', Inter, sans-serif)",
           borderRadius: "var(--radius-card, 18px)",
         }}
       >

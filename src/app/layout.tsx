@@ -8,7 +8,7 @@ import { ImpersonationBanner } from "@/components/impersonation/ImpersonationBan
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
-  variable: "--font-inter-tight",
+  variable: "--font-manrope-tight",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${interTight.variable} font-inter-tight bg-[#353531]`}>
+      <body className={`${interTight.variable} font-manrope-tight bg-[#353531]`}>
         <AuthProvider>
           <ImpersonationBanner />
           <SidebarProvider>{children}</SidebarProvider>

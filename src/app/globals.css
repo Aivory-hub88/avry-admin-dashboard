@@ -5,7 +5,7 @@
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
-  --font-inter-tight: "Inter Tight", Inter, sans-serif;
+  --font-manrope-tight: "Inter Tight", Inter, sans-serif;
 
   /* Aivory design tokens */
   --color-accent: #00e59e;
@@ -205,7 +205,7 @@
     @apply relative font-normal z-1;
     background: #353531;
     color: #f7f7f7;
-    font-family: var(--font-inter-tight), "Inter Tight", Inter, sans-serif;
+    font-family: var(--font-manrope-tight), "Inter Tight", Inter, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }
