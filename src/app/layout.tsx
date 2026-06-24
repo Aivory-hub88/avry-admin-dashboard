@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   title: "Aivory Admin",
   description: "Aivory Admin Dashboard",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/admin/favicon.svg",
+    shortcut: "/admin/favicon.svg",
   },
 };
 
