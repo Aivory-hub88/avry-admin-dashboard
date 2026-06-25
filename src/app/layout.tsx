@@ -14,10 +14,6 @@ const interTight = Inter_Tight({
 export const metadata: Metadata = {
   title: "Aivory Admin",
   description: "Aivory Admin Dashboard",
-  icons: {
-    icon: "/admin/favicon.svg",
-    shortcut: "/admin/favicon.svg",
-  },
 };
 
 export default function RootLayout({
