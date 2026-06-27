@@ -36,7 +36,7 @@ export default function VisitorsTimeRangeFilter({
             onClick={() => onChange(opt.value)}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
               active
-                ? "bg-[#00e59e]/15 text-[#00e59e]"
+                ? "bg-[#b7cba6]/15 text-[#b7cba6]"
                 : "text-gray-300 hover:bg-white/5"
             }`}
           >

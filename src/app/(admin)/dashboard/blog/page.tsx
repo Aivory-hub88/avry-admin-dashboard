@@ -81,13 +81,13 @@ export default function BlogAdminPanel() {
           }}
           className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
             activeTab === "manage"
-              ? "text-[#00e59e]"
+              ? "text-[#b7cba6]"
               : "text-gray-400 hover:text-white"
           }`}
         >
           Manage Posts
           {activeTab === "manage" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00e59e] rounded-t" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#b7cba6] rounded-t" />
           )}
         </button>
         <button
@@ -98,13 +98,13 @@ export default function BlogAdminPanel() {
           }}
           className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
             activeTab === "create"
-              ? "text-[#00e59e]"
+              ? "text-[#b7cba6]"
               : "text-gray-400 hover:text-white"
           }`}
         >
           Create Post
           {activeTab === "create" && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00e59e] rounded-t" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#b7cba6] rounded-t" />
           )}
         </button>
       </div>

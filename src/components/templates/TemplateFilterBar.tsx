@@ -23,7 +23,7 @@ export default function TemplateFilterBar({
       <select
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value as StatusFilterValue)}
-        className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+        className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
         aria-label="Filter by status"
       >
         <option value="all">All Statuses</option>
@@ -35,7 +35,7 @@ export default function TemplateFilterBar({
         onChange={(e) =>
           onCategoryChange(e.target.value as CategoryFilterValue)
         }
-        className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+        className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
         aria-label="Filter by category"
       >
         <option value="all">All Categories</option>

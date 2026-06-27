@@ -154,7 +154,7 @@ function TagList({
             onChange={(e) => setNewTag(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Tag name..."
-            className="w-24 rounded border border-white/10 bg-white/[0.05] px-2 py-0.5 text-xs text-white placeholder-gray-500 focus:border-[#00e59e]/50 focus:outline-none"
+            className="w-24 rounded border border-white/10 bg-white/[0.05] px-2 py-0.5 text-xs text-white placeholder-gray-500 focus:border-[#b7cba6]/50 focus:outline-none"
             autoFocus
             disabled={saving}
           />
@@ -256,7 +256,7 @@ function EmailDialog({
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Email subject..."
-              className="w-full rounded border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#00e59e]/50 focus:outline-none"
+              className="w-full rounded border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#b7cba6]/50 focus:outline-none"
             />
           </div>
           <div>
@@ -266,7 +266,7 @@ function EmailDialog({
               onChange={(e) => setBody(e.target.value)}
               placeholder="Write your message..."
               rows={6}
-              className="w-full rounded border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#00e59e]/50 focus:outline-none resize-none"
+              className="w-full rounded border border-white/10 bg-white/[0.05] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#b7cba6]/50 focus:outline-none resize-none"
             />
           </div>
 
@@ -284,7 +284,7 @@ function EmailDialog({
             <button
               onClick={handleSend}
               disabled={sending || !subject.trim() || !body.trim()}
-              className="inline-flex items-center gap-1.5 rounded bg-[#00e59e]/15 px-3 py-1.5 text-xs font-medium text-[#00e59e] hover:bg-[#00e59e]/25 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded bg-[#b7cba6]/15 px-3 py-1.5 text-xs font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors disabled:opacity-50"
             >
               {sending ? (
                 <Loader2 size={12} className="animate-spin" />

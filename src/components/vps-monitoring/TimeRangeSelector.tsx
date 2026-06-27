@@ -24,8 +24,8 @@ export function TimeRangeSelector({ selected, onChange }: TimeRangeSelectorProps
           onClick={() => onChange(range.value)}
           className="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
           style={{
-            background: selected === range.value ? "rgba(0, 229, 158, 0.15)" : "transparent",
-            color: selected === range.value ? "#00e59e" : "#a3a3a0",
+            background: selected === range.value ? "rgba(183, 203, 166, 0.15)" : "transparent",
+            color: selected === range.value ? "#b7cba6" : "#a3a3a0",
           }}
         >
           {range.label}

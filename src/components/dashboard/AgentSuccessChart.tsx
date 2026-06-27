@@ -17,7 +17,7 @@ export function AgentSuccessChart({ success, failed, running }: AgentSuccessChar
       background: "transparent",
     },
     theme: { mode: "dark" },
-    colors: ["#00e59e", "#f04438", "#f79009"],
+    colors: ["#b7cba6", "#f04438", "#f79009"],
     labels: ["Success", "Failed", "Running"],
     legend: {
       position: "bottom",

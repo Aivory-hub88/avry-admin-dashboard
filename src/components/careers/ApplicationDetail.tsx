@@ -401,7 +401,7 @@ export default function ApplicationDetail({
           <button
             onClick={handleDownloadCv}
             disabled={downloadingCv}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#00e59e]/10 px-4 py-2 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/20 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#b7cba6]/10 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/20 transition-colors disabled:opacity-50"
           >
             {downloadingCv ? (
               <Loader2 size={14} className="animate-spin" />
@@ -437,7 +437,7 @@ export default function ApplicationDetail({
             value={newTag}
             onChange={(e) => setNewTag(e.target.value)}
             placeholder="Add a tag..."
-            className="flex-1 rounded-lg border border-white/[0.07] bg-[#1e1e1c] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+            className="flex-1 rounded-lg border border-white/[0.07] bg-[#1e1e1c] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
           />
           <button
             type="submit"
@@ -477,7 +477,7 @@ export default function ApplicationDetail({
               value={emailSubject}
               onChange={(e) => setEmailSubject(e.target.value)}
               placeholder="Email subject..."
-              className="w-full rounded-lg border border-white/[0.07] bg-[#1e1e1c] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="w-full rounded-lg border border-white/[0.07] bg-[#1e1e1c] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
             />
           </div>
           <div>
@@ -493,7 +493,7 @@ export default function ApplicationDetail({
               onChange={(e) => setEmailBody(e.target.value)}
               placeholder="Write your message..."
               rows={6}
-              className="w-full rounded-lg border border-white/[0.07] bg-[#1e1e1c] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50 resize-y"
+              className="w-full rounded-lg border border-white/[0.07] bg-[#1e1e1c] px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50 resize-y"
             />
           </div>
           <div className="flex items-center gap-3">
@@ -502,7 +502,7 @@ export default function ApplicationDetail({
               disabled={
                 sendingEmail || !emailSubject.trim() || !emailBody.trim()
               }
-              className="inline-flex items-center gap-2 rounded-lg bg-[#00e59e] px-4 py-2 text-sm font-medium text-black hover:bg-[#00e59e]/90 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#b7cba6] px-4 py-2 text-sm font-medium text-black hover:bg-[#b7cba6]/90 transition-colors disabled:opacity-50"
             >
               {sendingEmail ? (
                 <Loader2 size={14} className="animate-spin" />

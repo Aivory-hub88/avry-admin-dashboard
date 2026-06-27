@@ -25,7 +25,7 @@ function RoleBadge({ role }: { role: "superadmin" | "admin" | null }) {
     <span
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
         role === "superadmin"
-          ? "bg-[#00e59e]/20 text-[#00e59e]"
+          ? "bg-[#b7cba6]/20 text-[#b7cba6]"
           : "bg-white/10 text-gray-300"
       }`}
     >
@@ -131,7 +131,7 @@ function CreateAdminModal({ onClose, onSuccess }: CreateAdminModalProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@aivory.id"
                 required
-                className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+                className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
               />
             </div>
 
@@ -145,7 +145,7 @@ function CreateAdminModal({ onClose, onSuccess }: CreateAdminModalProps) {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Jane Doe"
                 required
-                className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+                className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
               />
             </div>
 
@@ -161,7 +161,7 @@ function CreateAdminModal({ onClose, onSuccess }: CreateAdminModalProps) {
                   placeholder="Min. 8 characters"
                   required
                   minLength={8}
-                  className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 pr-10 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+                  className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 pr-10 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
                 />
                 <button
                   type="button"
@@ -188,7 +188,7 @@ function CreateAdminModal({ onClose, onSuccess }: CreateAdminModalProps) {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat password"
                   required
-                  className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 pr-10 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+                  className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 pr-10 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
                 />
                 <button
                   type="button"
@@ -210,7 +210,7 @@ function CreateAdminModal({ onClose, onSuccess }: CreateAdminModalProps) {
                 id="forceReset"
                 checked={forceReset}
                 onChange={(e) => setForceReset(e.target.checked)}
-                className="h-4 w-4 rounded border-white/[0.07] bg-white/5 accent-[#00e59e]"
+                className="h-4 w-4 rounded border-white/[0.07] bg-white/5 accent-[#b7cba6]"
               />
               <label htmlFor="forceReset" className="text-sm text-gray-300 cursor-pointer">
                 Force password change on first login
@@ -221,7 +221,7 @@ function CreateAdminModal({ onClose, onSuccess }: CreateAdminModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-[#00e59e]/15 border border-[#00e59e]/30 px-4 py-2.5 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 disabled:opacity-50 transition-colors"
+                className="w-full rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-4 py-2.5 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 disabled:opacity-50 transition-colors"
               >
                 {loading ? "Creating..." : "Create Admin Account"}
               </button>
@@ -293,7 +293,7 @@ function AdminAccountsTable({ currentUserEmail }: AdminAccountsTableProps) {
         <WriteGate>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="rounded-lg bg-[#00e59e]/15 border border-[#00e59e]/30 px-3 py-1.5 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 transition-colors whitespace-nowrap"
+            className="rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-3 py-1.5 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors whitespace-nowrap"
           >
             + Create Admin
           </button>
@@ -301,7 +301,7 @@ function AdminAccountsTable({ currentUserEmail }: AdminAccountsTableProps) {
       </div>
 
       {successMsg && (
-        <div className="rounded-lg bg-[#00e59e]/10 border border-[#00e59e]/20 px-4 py-2.5 text-sm text-[#00e59e]">
+        <div className="rounded-lg bg-[#b7cba6]/10 border border-[#b7cba6]/20 px-4 py-2.5 text-sm text-[#b7cba6]">
           {successMsg}
         </div>
       )}
@@ -340,7 +340,7 @@ function AdminAccountsTable({ currentUserEmail }: AdminAccountsTableProps) {
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                         account.status === "active"
-                          ? "bg-[#00e59e]/15 text-[#00e59e]"
+                          ? "bg-[#b7cba6]/15 text-[#b7cba6]"
                           : "bg-red-500/15 text-red-400"
                       }`}
                     >
@@ -370,7 +370,7 @@ function AdminAccountsTable({ currentUserEmail }: AdminAccountsTableProps) {
                         <button
                           onClick={() => handleAction(account.id, "reactivate")}
                           disabled={actionLoading === account.id}
-                          className="rounded border border-[#00e59e]/30 bg-[#00e59e]/10 px-2.5 py-1 text-xs font-medium text-[#00e59e] hover:bg-[#00e59e]/20 disabled:opacity-40 transition-colors"
+                          className="rounded border border-[#b7cba6]/30 bg-[#b7cba6]/10 px-2.5 py-1 text-xs font-medium text-[#b7cba6] hover:bg-[#b7cba6]/20 disabled:opacity-40 transition-colors"
                         >
                           {actionLoading === account.id ? "..." : "Reactivate"}
                         </button>
@@ -463,7 +463,7 @@ export default function SettingsPage() {
                   type="text"
                   defaultValue={apiUrl}
                   readOnly
-                  className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+                  className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
                 />
               </WriteGate>
             </div>
@@ -474,7 +474,7 @@ export default function SettingsPage() {
           <div className="pt-2">
             <button
               onClick={() => alert("Save configuration — coming soon")}
-              className="rounded-lg bg-[#00e59e]/15 px-4 py-2 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 transition-colors"
+              className="rounded-lg bg-[#b7cba6]/15 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors"
             >
               Save Changes
             </button>

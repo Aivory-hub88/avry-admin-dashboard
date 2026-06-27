@@ -44,7 +44,7 @@ export default function DataTable<T extends Record<string, unknown>>({
               type="text"
               placeholder={searchPlaceholder}
               onChange={(e) => onSearch(e.target.value)}
-              className="flex-1 min-w-[200px] rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="flex-1 min-w-[200px] rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
             />
           )}
           {filterSlot}

@@ -106,7 +106,7 @@ export default function DetailView({ title, recordType, recordId, data, onClose 
         {role === "admin" && (
           <div className="px-6 py-4 border-t border-white/[0.07]">
             {reportStatus === "sent" ? (
-              <p className="text-sm text-[#00e59e]">✓ Report sent to superadmin.</p>
+              <p className="text-sm text-[#b7cba6]">✓ Report sent to superadmin.</p>
             ) : (
               <>
                 {!showReportForm ? (
@@ -123,7 +123,7 @@ export default function DetailView({ title, recordType, recordId, data, onClose 
                       onChange={(e) => setReportNote(e.target.value)}
                       placeholder="Optional: describe the issue..."
                       rows={3}
-                      className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50 resize-none"
+                      className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50 resize-none"
                     />
                     {reportStatus === "error" && (
                       <p className="text-xs text-red-400">
@@ -134,7 +134,7 @@ export default function DetailView({ title, recordType, recordId, data, onClose 
                       <button
                         onClick={handleReport}
                         disabled={reportStatus === "sending"}
-                        className="flex-1 rounded-lg bg-[#00e59e]/15 px-4 py-2 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 disabled:opacity-50 transition-colors"
+                        className="flex-1 rounded-lg bg-[#b7cba6]/15 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 disabled:opacity-50 transition-colors"
                       >
                         {reportStatus === "sending" ? "Sending..." : "Send Report"}
                       </button>

@@ -57,7 +57,7 @@ export default function CareersAdminPanel() {
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? "border-[#00e59e] text-[#00e59e]"
+                  ? "border-[#b7cba6] text-[#b7cba6]"
                   : "border-transparent text-gray-400 hover:border-white/20 hover:text-gray-200"
               }`}
               aria-selected={activeTab === tab.id}

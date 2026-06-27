@@ -26,7 +26,7 @@ function statusBadge(status: AutomationTemplate["status"]) {
   const label = status === "published" ? "Published" : "Draft";
   const classes =
     status === "published"
-      ? "bg-[#00e59e]/20 text-[#00e59e]"
+      ? "bg-[#b7cba6]/20 text-[#b7cba6]"
       : "bg-white/10 text-gray-300";
   return (
     <span

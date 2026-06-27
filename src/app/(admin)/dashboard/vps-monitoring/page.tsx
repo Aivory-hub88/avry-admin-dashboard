@@ -217,7 +217,7 @@ export default function VpsMonitoringPage() {
               query='100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)'
               timeRange={timeRange}
               unit="%"
-              color="#00e59e"
+              color="#b7cba6"
               formatValue={(val: number) => `${val.toFixed(1)}%`}
             />
             <ResourceChart
@@ -271,7 +271,7 @@ export default function VpsMonitoringPage() {
             timeRange={timeRange}
             userId={selectedUserId}
             unit="s"
-            color="#00e59e"
+            color="#b7cba6"
             formatValue={(val: number) => `${val.toFixed(2)}s`}
           />
           <ResourceChart

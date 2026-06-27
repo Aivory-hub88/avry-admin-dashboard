@@ -47,7 +47,7 @@ export function ImpersonateButton({ user, onImpersonate }: ImpersonateButtonProp
       className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors ${
         isSuperadmin
           ? "cursor-not-allowed border-white/[0.04] text-gray-600 opacity-50"
-          : "border-white/[0.07] text-gray-300 hover:bg-[#00e59e]/10 hover:text-[#00e59e] hover:border-[#00e59e]/30"
+          : "border-white/[0.07] text-gray-300 hover:bg-[#b7cba6]/10 hover:text-[#b7cba6] hover:border-[#b7cba6]/30"
       }`}
     >
       <UserCheck size={14} />

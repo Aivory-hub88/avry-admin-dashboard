@@ -21,7 +21,7 @@ interface BlueprintRecord extends Record<string, unknown> {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  completed: "bg-[#00e59e]/20 text-[#00e59e]",
+  completed: "bg-[#b7cba6]/20 text-[#b7cba6]",
   generating: "bg-yellow-500/20 text-yellow-400",
   draft: "bg-white/10 text-gray-300",
   failed: "bg-red-500/20 text-red-400",
@@ -66,7 +66,7 @@ const columns: Column<BlueprintRecord>[] = [
     width: "80px",
     render: (row) =>
       row.pdfUrl ? (
-        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-[#00e59e]/10 text-[#00e59e]">
+        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-[#b7cba6]/10 text-[#b7cba6]">
           Ready
         </span>
       ) : (
@@ -163,7 +163,7 @@ export default function BlueprintsPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Total Blueprints", value: total, color: "text-white" },
-          { label: "Completed", value: completed, color: "text-[#00e59e]" },
+          { label: "Completed", value: completed, color: "text-[#b7cba6]" },
           { label: "Generating", value: generating, color: "text-yellow-400" },
           { label: "Failed", value: failed, color: "text-red-400" },
         ].map((kpi) => (
@@ -190,7 +190,7 @@ export default function BlueprintsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+            className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>

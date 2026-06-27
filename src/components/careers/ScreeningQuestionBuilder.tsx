@@ -50,7 +50,7 @@ export default function ScreeningQuestionBuilder({
         <button
           type="button"
           onClick={addQuestion}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#00e59e] ring-1 ring-inset ring-[#00e59e]/30 hover:bg-[#00e59e]/10 transition"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#b7cba6] ring-1 ring-inset ring-[#b7cba6]/30 hover:bg-[#b7cba6]/10 transition"
         >
           <span className="text-base leading-none">+</span> Add Question
         </button>
@@ -78,7 +78,7 @@ export default function ScreeningQuestionBuilder({
                     updateQuestion(index, "question", e.target.value)
                   }
                   placeholder="Enter your question..."
-                  className="w-full rounded-lg border border-white/[0.12] bg-transparent px-3 py-2 text-sm text-white/90 placeholder:text-gray-500 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/20"
+                  className="w-full rounded-lg border border-white/[0.12] bg-transparent px-3 py-2 text-sm text-white/90 placeholder:text-gray-500 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/20"
                   aria-label={`Question ${index + 1} text`}
                 />
               </div>
@@ -118,7 +118,7 @@ export default function ScreeningQuestionBuilder({
                       e.target.value as ScreeningQuestion["type"]
                     )
                   }
-                  className="rounded-md border border-white/[0.12] bg-[#2a2a27] px-2.5 py-1 text-xs text-white/90 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/20"
+                  className="rounded-md border border-white/[0.12] bg-[#2a2a27] px-2.5 py-1 text-xs text-white/90 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/20"
                   aria-label={`Question ${index + 1} type`}
                 >
                   {QUESTION_TYPES.map((t) => (
@@ -137,7 +137,7 @@ export default function ScreeningQuestionBuilder({
                   onChange={(e) =>
                     updateQuestion(index, "required", e.target.checked)
                   }
-                  className="h-3.5 w-3.5 rounded border-white/[0.2] bg-transparent text-[#00e59e] focus:ring-[#00e59e]/20 focus:ring-offset-0"
+                  className="h-3.5 w-3.5 rounded border-white/[0.2] bg-transparent text-[#b7cba6] focus:ring-[#b7cba6]/20 focus:ring-offset-0"
                   aria-label={`Question ${index + 1} required`}
                 />
                 <span className="text-xs text-gray-400">Required</span>

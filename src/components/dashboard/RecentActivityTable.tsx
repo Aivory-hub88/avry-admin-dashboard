@@ -14,7 +14,7 @@ interface RecentActivityTableProps {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  workflow_run: "#00e59e",
+  workflow_run: "#b7cba6",
   workflow_error: "#f04438",
   agent_run: "#60a5fa",
   agent_error: "#f04438",

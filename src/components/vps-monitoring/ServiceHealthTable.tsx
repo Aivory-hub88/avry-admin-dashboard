@@ -56,13 +56,13 @@ export function ServiceHealthTable({ services, isLoading = false }: ServiceHealt
                     style={{
                       background:
                         svc.status === "up"
-                          ? "rgba(0, 229, 158, 0.15)"
+                          ? "rgba(183, 203, 166, 0.15)"
                           : svc.status === "down"
                           ? "rgba(240, 68, 56, 0.15)"
                           : "rgba(255,255,255,0.08)",
                       color:
                         svc.status === "up"
-                          ? "#00e59e"
+                          ? "#b7cba6"
                           : svc.status === "down"
                           ? "#f04438"
                           : "#a3a3a0",
@@ -72,7 +72,7 @@ export function ServiceHealthTable({ services, isLoading = false }: ServiceHealt
                       className="w-1.5 h-1.5 rounded-full"
                       style={{
                         background:
-                          svc.status === "up" ? "#00e59e" : svc.status === "down" ? "#f04438" : "#6b6b68",
+                          svc.status === "up" ? "#b7cba6" : svc.status === "down" ? "#f04438" : "#6b6b68",
                       }}
                     />
                     {svc.status === "up" ? "Healthy" : svc.status === "down" ? "Down" : "Unknown"}

@@ -213,7 +213,7 @@ export default function TemplateUploadModal({
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
               placeholder="e.g. New Lead Welcome Sequence"
             />
             {nameError && (
@@ -234,7 +234,7 @@ export default function TemplateUploadModal({
                 setForm({ ...form, description: e.target.value })
               }
               rows={3}
-              className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
               placeholder="What does this template do?"
             />
           </div>
@@ -253,7 +253,7 @@ export default function TemplateUploadModal({
                     category: e.target.value as TemplateCategory,
                   })
                 }
-                className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+                className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
               >
                 {TEMPLATE_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
@@ -274,7 +274,7 @@ export default function TemplateUploadModal({
                   onClick={() => setForm({ ...form, status: "draft" })}
                   className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     form.status === "draft"
-                      ? "border-[#00e59e]/30 bg-[#00e59e]/15 text-[#00e59e]"
+                      ? "border-[#b7cba6]/30 bg-[#b7cba6]/15 text-[#b7cba6]"
                       : "border-white/[0.07] bg-white/5 text-gray-300 hover:bg-white/10"
                   }`}
                 >
@@ -285,7 +285,7 @@ export default function TemplateUploadModal({
                   onClick={() => setForm({ ...form, status: "published" })}
                   className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     form.status === "published"
-                      ? "border-[#00e59e]/30 bg-[#00e59e]/15 text-[#00e59e]"
+                      ? "border-[#b7cba6]/30 bg-[#b7cba6]/15 text-[#b7cba6]"
                       : "border-white/[0.07] bg-white/5 text-gray-300 hover:bg-white/10"
                   }`}
                 >
@@ -304,7 +304,7 @@ export default function TemplateUploadModal({
               type="text"
               value={form.tagsRaw}
               onChange={(e) => setForm({ ...form, tagsRaw: e.target.value })}
-              className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
               placeholder="sales, onboarding, email"
             />
           </div>
@@ -336,7 +336,7 @@ export default function TemplateUploadModal({
               }}
               rows={10}
               spellCheck={false}
-              className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 font-mono text-xs placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2.5 font-mono text-xs placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
               placeholder='{"nodes": [...], "connections": {...}}'
             />
             {jsonError && (
@@ -366,7 +366,7 @@ export default function TemplateUploadModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-lg bg-[#00e59e]/15 border border-[#00e59e]/30 px-4 py-2 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 disabled:opacity-50 transition-colors"
+                className="rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 disabled:opacity-50 transition-colors"
               >
                 {isSubmitting
                   ? "Saving..."

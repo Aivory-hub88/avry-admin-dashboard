@@ -24,7 +24,7 @@ export function ResourceChart({
   userId,
   unit = "",
   formatValue,
-  color = "#00e59e",
+  color = "#b7cba6",
   height = 200,
 }: ResourceChartProps) {
   const [series, setSeries] = useState<{ name: string; data: [number, number][] }[]>([]);

@@ -85,7 +85,7 @@ function BlockEditor({
   isLast: boolean;
 }) {
   const inputClass =
-    "w-full bg-[#1f1f1c] border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00e59e]/50 focus:ring-1 focus:ring-[#00e59e]/30";
+    "w-full bg-[#1f1f1c] border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#b7cba6]/50 focus:ring-1 focus:ring-[#b7cba6]/30";
 
   const renderFields = () => {
     switch (block.type) {
@@ -98,7 +98,7 @@ function BlockEditor({
                 onChange={(e) =>
                   onChange(index, { ...block, level: parseInt(e.target.value) })
                 }
-                className="bg-[#1f1f1c] border border-white/10 rounded-md px-2 py-2 text-sm text-white focus:outline-none focus:border-[#00e59e]/50"
+                className="bg-[#1f1f1c] border border-white/10 rounded-md px-2 py-2 text-sm text-white focus:outline-none focus:border-[#b7cba6]/50"
               >
                 {[1, 2, 3, 4, 5, 6].map((l) => (
                   <option key={l} value={l}>
@@ -160,7 +160,7 @@ function BlockEditor({
                   style: e.target.value as "ordered" | "unordered",
                 })
               }
-              className="bg-[#1f1f1c] border border-white/10 rounded-md px-2 py-2 text-sm text-white focus:outline-none focus:border-[#00e59e]/50"
+              className="bg-[#1f1f1c] border border-white/10 rounded-md px-2 py-2 text-sm text-white focus:outline-none focus:border-[#b7cba6]/50"
             >
               <option value="unordered">Unordered (bullet)</option>
               <option value="ordered">Ordered (numbered)</option>
@@ -194,7 +194,7 @@ function BlockEditor({
             <button
               type="button"
               onClick={() => onChange(index, { ...block, items: [...items, ""] })}
-              className="text-xs text-[#00e59e] hover:text-[#00c88a] transition-colors"
+              className="text-xs text-[#b7cba6] hover:text-[#00c88a] transition-colors"
             >
               + Add item
             </button>
@@ -307,7 +307,7 @@ function PreviewRenderer({ blocks }: { blocks: ContentBlock[] }) {
     html = html.replace(/_(.+?)_/g, "<em>$1</em>");
     html = html.replace(
       /`(.+?)`/g,
-      '<code class="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-sm font-mono text-[#00e59e]">$1</code>'
+      '<code class="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-sm font-mono text-[#b7cba6]">$1</code>'
     );
     return html;
   }
@@ -400,7 +400,7 @@ function PreviewRenderer({ blocks }: { blocks: ContentBlock[] }) {
                   href={block.href ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#00e59e] underline hover:text-[#00c88a] transition-colors"
+                  className="text-[#b7cba6] underline hover:text-[#00c88a] transition-colors"
                 >
                   {block.text || block.href}
                 </a>
@@ -442,7 +442,7 @@ function ConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="px-4 py-2 text-sm font-medium rounded-md bg-[#00e59e] text-[#1f1f1c] hover:bg-[#00c88a] transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-[#b7cba6] text-[#1f1f1c] hover:bg-[#00c88a] transition-colors"
           >
             Publish
           </button>
@@ -604,7 +604,7 @@ export default function BlogPostEditor({ editPost, onSaved }: BlogPostEditorProp
   };
 
   const inputClass =
-    "w-full bg-[#1f1f1c] border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00e59e]/50 focus:ring-1 focus:ring-[#00e59e]/30";
+    "w-full bg-[#1f1f1c] border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#b7cba6]/50 focus:ring-1 focus:ring-[#b7cba6]/30";
 
   return (
     <div className="space-y-5">
@@ -619,7 +619,7 @@ export default function BlogPostEditor({ editPost, onSaved }: BlogPostEditorProp
             onClick={() => setShowPreview(!showPreview)}
             className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
               showPreview
-                ? "bg-[#00e59e]/10 border-[#00e59e]/30 text-[#00e59e]"
+                ? "bg-[#b7cba6]/10 border-[#b7cba6]/30 text-[#b7cba6]"
                 : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
             }`}
           >
@@ -637,7 +637,7 @@ export default function BlogPostEditor({ editPost, onSaved }: BlogPostEditorProp
             type="button"
             onClick={handlePublishClick}
             disabled={saving}
-            className="px-4 py-2 text-sm font-medium rounded-md bg-[#00e59e] text-[#1f1f1c] hover:bg-[#00c88a] disabled:opacity-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-[#b7cba6] text-[#1f1f1c] hover:bg-[#00c88a] disabled:opacity-50 transition-colors"
           >
             {saving ? "Saving…" : "Publish"}
           </button>

@@ -127,7 +127,7 @@ export default function RichTextEditor({
         onInput={handleInput}
         onPaste={handlePaste}
         dangerouslySetInnerHTML={{ __html: value }}
-        className="w-full rounded-b-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-3 text-sm text-white/90 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/20 prose prose-invert prose-sm max-w-none [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-gray-500"
+        className="w-full rounded-b-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-3 text-sm text-white/90 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/20 prose prose-invert prose-sm max-w-none [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-gray-500"
         style={{ minHeight }}
         data-placeholder={placeholder}
         role="textbox"

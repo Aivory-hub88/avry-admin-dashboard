@@ -7,7 +7,7 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 // Generate a deterministic accent color from a string
 function stringToColor(str: string): string {
   const colors = [
-    "#00e59e", "#60a5fa", "#a78bfa", "#f472b6",
+    "#b7cba6", "#60a5fa", "#a78bfa", "#f472b6",
     "#34d399", "#fb923c", "#38bdf8", "#e879f9",
   ];
   let hash = 0;
@@ -40,7 +40,7 @@ export default function UserDropdown() {
   const initials = getInitials(displayName || email);
   // Role-specific avatar color: green for superadmin, gray for admin.
   const avatarColor =
-    role === "superadmin" ? "#00e59e" : role === "admin" ? "#6b7280" : stringToColor(email || "admin");
+    role === "superadmin" ? "#b7cba6" : role === "admin" ? "#6b7280" : stringToColor(email || "admin");
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
@@ -124,7 +124,7 @@ export default function UserDropdown() {
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                   role === "superadmin"
-                    ? "bg-[#00e59e]/20 text-[#00e59e]"
+                    ? "bg-[#b7cba6]/20 text-[#b7cba6]"
                     : "bg-white/10 text-gray-300"
                 }`}
               >

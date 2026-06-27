@@ -106,7 +106,7 @@ export default function AdminAccountsPage() {
         <WriteGate>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="rounded-lg bg-[#00e59e]/15 border border-[#00e59e]/30 px-4 py-2 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 transition-colors"
+            className="rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors"
           >
             + Create Admin
           </button>
@@ -115,7 +115,7 @@ export default function AdminAccountsPage() {
 
       {/* Success message */}
       {successMessage && (
-        <div className="rounded-lg bg-[#00e59e]/10 border border-[#00e59e]/20 px-4 py-3 text-sm text-[#00e59e]">
+        <div className="rounded-lg bg-[#b7cba6]/10 border border-[#b7cba6]/20 px-4 py-3 text-sm text-[#b7cba6]">
           {successMessage}
         </div>
       )}

@@ -13,7 +13,7 @@ interface AgentItem {
 }
 
 const BLANK = { name: "", description: "", category: "general", icon: "", tagsStr: "", status: "draft", configStr: "{}" };
-const inp = "w-full rounded-lg bg-white/[0.04] border border-white/10 px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#00e59e]/50";
+const inp = "w-full rounded-lg bg-white/[0.04] border border-white/10 px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#b7cba6]/50";
 
 export default function AgentManagementPage() {
   const [items, setItems] = useState<AgentItem[]>([]);
@@ -88,7 +88,7 @@ export default function AgentManagementPage() {
           <h1 className="text-xl font-semibold text-white">Agent Management</h1>
           <p className="text-sm text-white/40 mt-1">Configure agents and publish them to the user dashboard Agents page.</p>
         </div>
-        <button onClick={openCreate} className="rounded-lg bg-[#00e59e]/15 border border-[#00e59e]/30 px-4 py-2 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 transition-colors">+ New Agent</button>
+        <button onClick={openCreate} className="rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors">+ New Agent</button>
       </div>
 
       {loading ? (
@@ -116,10 +116,10 @@ export default function AgentManagementPage() {
                   <td className="px-4 py-3">{a.category}</td>
                   <td className="px-4 py-3 text-white/50">{(a.tags || []).join(", ")}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs ${a.status === "published" ? "bg-[#00e59e]/15 text-[#00e59e]" : "bg-white/10 text-white/50"}`}>{a.status}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${a.status === "published" ? "bg-[#b7cba6]/15 text-[#b7cba6]" : "bg-white/10 text-white/50"}`}>{a.status}</span>
                   </td>
                   <td className="px-4 py-3 text-right space-x-3 whitespace-nowrap">
-                    <button onClick={() => togglePublish(a)} className="text-[#00e59e] hover:underline">{a.status === "published" ? "Unpublish" : "Publish"}</button>
+                    <button onClick={() => togglePublish(a)} className="text-[#b7cba6] hover:underline">{a.status === "published" ? "Unpublish" : "Publish"}</button>
                     <button onClick={() => openEdit(a)} className="text-white/70 hover:underline">Edit</button>
                     <button onClick={() => del(a)} className="text-red-400 hover:underline">Delete</button>
                   </td>
@@ -154,7 +154,7 @@ export default function AgentManagementPage() {
             </div>
             <div className="flex justify-end gap-3 mt-5">
               <button onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-white/60 hover:text-white">Cancel</button>
-              <button onClick={save} disabled={saving} className="rounded-lg bg-[#00e59e] px-4 py-2 text-sm font-medium text-black hover:bg-[#00e59e]/90 disabled:opacity-50">{saving ? "Saving…" : editingId ? "Save Changes" : "Create Agent"}</button>
+              <button onClick={save} disabled={saving} className="rounded-lg bg-[#b7cba6] px-4 py-2 text-sm font-medium text-black hover:bg-[#b7cba6]/90 disabled:opacity-50">{saving ? "Saving…" : editingId ? "Save Changes" : "Create Agent"}</button>
             </div>
           </div>
         </div>

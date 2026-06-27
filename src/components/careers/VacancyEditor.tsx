@@ -296,8 +296,8 @@ export default function VacancyEditor({
         </div>
       )}
       {successMessage && (
-        <div className="rounded-lg border border-[#00e59e]/30 bg-[#00e59e]/10 px-4 py-3">
-          <p className="text-sm text-[#00e59e]">{successMessage}</p>
+        <div className="rounded-lg border border-[#b7cba6]/30 bg-[#b7cba6]/10 px-4 py-3">
+          <p className="text-sm text-[#b7cba6]">{successMessage}</p>
         </div>
       )}
 
@@ -317,7 +317,7 @@ export default function VacancyEditor({
             value={form.title}
             onChange={(e) => updateField("title", e.target.value)}
             placeholder="e.g. Senior Frontend Developer"
-            className="w-full rounded-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-2.5 text-sm text-white/90 placeholder:text-gray-500 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/20"
+            className="w-full rounded-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-2.5 text-sm text-white/90 placeholder:text-gray-500 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/20"
           />
         </div>
 
@@ -336,7 +336,7 @@ export default function VacancyEditor({
               value={form.department}
               onChange={(e) => updateField("department", e.target.value)}
               placeholder="e.g. Engineering"
-              className="w-full rounded-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-2.5 text-sm text-white/90 placeholder:text-gray-500 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/20"
+              className="w-full rounded-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-2.5 text-sm text-white/90 placeholder:text-gray-500 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/20"
             />
           </div>
 
@@ -353,7 +353,7 @@ export default function VacancyEditor({
               value={form.location}
               onChange={(e) => updateField("location", e.target.value)}
               placeholder="e.g. Remote, Amsterdam"
-              className="w-full rounded-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-2.5 text-sm text-white/90 placeholder:text-gray-500 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/20"
+              className="w-full rounded-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-2.5 text-sm text-white/90 placeholder:text-gray-500 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/20"
             />
           </div>
         </div>
@@ -370,7 +370,7 @@ export default function VacancyEditor({
             id="vacancy-employment-type"
             value={form.employment_type}
             onChange={(e) => updateField("employment_type", e.target.value)}
-            className="w-full rounded-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-2.5 text-sm text-white/90 focus:border-[#00e59e]/50 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/20"
+            className="w-full rounded-lg border border-white/[0.12] bg-[#1f1f1c] px-4 py-2.5 text-sm text-white/90 focus:border-[#b7cba6]/50 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/20"
           >
             <option value="" className="bg-[#1f1f1c] text-gray-400">
               Select employment type
@@ -414,7 +414,7 @@ export default function VacancyEditor({
           type="button"
           onClick={() => submitVacancy("open")}
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#00e59e] px-5 py-2.5 text-sm font-medium text-[#1f1f1c] hover:bg-[#00e59e]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#b7cba6] px-5 py-2.5 text-sm font-medium text-[#1f1f1c] hover:bg-[#b7cba6]/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
             "Saving..."

@@ -52,7 +52,7 @@ export function KpiCard({ title, value, isLoading, error, onRetry }: KpiCardProp
               onClick={onRetry}
               title="Retry"
               className="flex items-center justify-center rounded-full p-1 transition-colors hover:bg-white/10"
-              style={{ color: "#00e59e" }}
+              style={{ color: "#b7cba6" }}
             >
               {/* Retry icon */}
               <svg

@@ -19,7 +19,7 @@ interface AgentExecution extends Record<string, unknown> {
 
 const STATUS_COLORS: Record<string, string> = {
   running: "bg-blue-500/20 text-blue-400",
-  success: "bg-[#00e59e]/20 text-[#00e59e]",
+  success: "bg-[#b7cba6]/20 text-[#b7cba6]",
   failed: "bg-red-500/20 text-red-400",
 };
 
@@ -134,7 +134,7 @@ export default function AgentsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+            className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>

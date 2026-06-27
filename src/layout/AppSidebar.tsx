@@ -93,7 +93,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ unreadReports = 0 }) => {
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
               role === "superadmin"
-                ? "bg-[#00e59e]/20 text-[#00e59e]"
+                ? "bg-[#b7cba6]/20 text-[#b7cba6]"
                 : "bg-white/10 text-gray-300"
             }`}
           >
@@ -116,13 +116,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ unreadReports = 0 }) => {
               className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                 ${
                   active
-                    ? "bg-[#00e59e]/15 text-[#00e59e]"
+                    ? "bg-[#b7cba6]/15 text-[#b7cba6]"
                     : "text-gray-300 hover:bg-white/5 hover:text-white"
                 }
                 ${!showExpanded ? "justify-center" : ""}
               `}
             >
-              <span className={`flex-shrink-0 ${active ? "text-[#00e59e]" : "text-gray-400"}`}>
+              <span className={`flex-shrink-0 ${active ? "text-[#b7cba6]" : "text-gray-400"}`}>
                 {item.icon}
               </span>
               {showExpanded && <span className="truncate">{item.name}</span>}

@@ -61,7 +61,7 @@ const columns: Column<Payment>[] = [
       <span
         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
           row.status === "paid"
-            ? "bg-[#00e59e]/20 text-[#00e59e]"
+            ? "bg-[#b7cba6]/20 text-[#b7cba6]"
             : row.status === "failed"
             ? "bg-red-500/20 text-red-400"
             : row.status === "refunded"
@@ -194,7 +194,7 @@ export default function PaymentsPage() {
         <WriteGate>
           <button
             onClick={handleRecordManualPayment}
-            className="rounded-lg bg-[#00e59e]/15 px-4 py-2 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 transition-colors"
+            className="rounded-lg bg-[#b7cba6]/15 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors"
           >
             Record Manual Payment
           </button>
@@ -205,7 +205,7 @@ export default function PaymentsPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+          className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -217,7 +217,7 @@ export default function PaymentsPage() {
         <select
           value={productFilter}
           onChange={(e) => setProductFilter(e.target.value)}
-          className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+          className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
         >
           {PRODUCT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>

@@ -11,7 +11,7 @@ interface MetricCardProps {
 }
 
 const statusColors = {
-  normal: { bg: "rgba(0, 229, 158, 0.1)", border: "rgba(0, 229, 158, 0.3)", text: "#00e59e" },
+  normal: { bg: "rgba(183, 203, 166, 0.1)", border: "rgba(183, 203, 166, 0.3)", text: "#b7cba6" },
   warning: { bg: "rgba(245, 166, 35, 0.1)", border: "rgba(245, 166, 35, 0.3)", text: "#f5a623" },
   critical: { bg: "rgba(240, 68, 56, 0.1)", border: "rgba(240, 68, 56, 0.3)", text: "#f04438" },
 };

@@ -8,8 +8,8 @@
   --font-manrope-tight: "Inter Tight", Inter, sans-serif;
 
   /* Aivory design tokens */
-  --color-accent: #00e59e;
-  --color-accent-dim: rgba(0, 229, 158, 0.12);
+  --color-accent: #b7cba6;
+  --color-accent-dim: rgba(183, 203, 166, 0.12);
   --color-bg-main: #353531;
   --color-bg-elevated: #3a3a36;
   --color-border-soft: rgba(255, 255, 255, 0.07);
@@ -212,8 +212,8 @@
 
 /* Legacy CSS custom properties for non-Tailwind usage */
 :root {
-  --accent: #00e59e;
-  --accent-dim: rgba(0, 229, 158, 0.12);
+  --accent: #b7cba6;
+  --accent-dim: rgba(183, 203, 166, 0.12);
   --bg-elevated: #3a3a36;
   --border-soft: rgba(255, 255, 255, 0.07);
   --card-radius: 18px;

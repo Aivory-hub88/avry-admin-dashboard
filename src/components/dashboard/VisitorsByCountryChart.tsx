@@ -46,7 +46,7 @@ export function VisitorsByCountryChart({ data }: VisitorsByCountryChartProps) {
       toolbar: { show: false },
     },
     theme: { mode: "dark" },
-    colors: ["#00e59e"],
+    colors: ["#b7cba6"],
     plotOptions: {
       bar: {
         horizontal: true,

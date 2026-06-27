@@ -35,7 +35,7 @@ interface DiagnosticStats {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  completed: "bg-[#00e59e]/20 text-[#00e59e]",
+  completed: "bg-[#b7cba6]/20 text-[#b7cba6]",
   in_progress: "bg-yellow-500/20 text-yellow-400",
   failed: "bg-red-500/20 text-red-400",
 };
@@ -70,7 +70,7 @@ function ScoreBadge({ score }: { score: number | null }) {
   if (score === null) return <span className="text-gray-500">—</span>;
   const color =
     score >= 80
-      ? "text-[#00e59e]"
+      ? "text-[#b7cba6]"
       : score >= 60
         ? "text-yellow-400"
         : "text-red-400";
@@ -231,7 +231,7 @@ export default function DiagnosticsPage() {
         <h1 className="text-xl font-semibold text-white">Diagnostic Monitoring</h1>
         {stats && (
           <div className="text-sm text-gray-400">
-            Avg Score: <span className="text-[#00e59e] font-semibold">{stats.average_score.toFixed(1)}</span>
+            Avg Score: <span className="text-[#b7cba6] font-semibold">{stats.average_score.toFixed(1)}</span>
           </div>
         )}
       </div>
@@ -240,7 +240,7 @@ export default function DiagnosticsPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Total Runs", value: total, color: "text-white" },
-          { label: "Completed", value: completed, color: "text-[#00e59e]" },
+          { label: "Completed", value: completed, color: "text-[#b7cba6]" },
           { label: "In Progress", value: inProgress, color: "text-yellow-400" },
           { label: "Failed", value: failed, color: "text-red-400" },
         ].map((kpi) => (
@@ -270,7 +270,7 @@ export default function DiagnosticsPage() {
           <p className="text-sm font-medium text-gray-300 mb-3">Category Distribution</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <div>
-              <span className="text-[#00e59e]">🟢 Advanced</span>
+              <span className="text-[#b7cba6]">🟢 Advanced</span>
               <p className="text-lg font-semibold text-white">{stats.category_distribution.advanced}</p>
             </div>
             <div>
@@ -301,7 +301,7 @@ export default function DiagnosticsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -312,7 +312,7 @@ export default function DiagnosticsPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
             >
               {TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

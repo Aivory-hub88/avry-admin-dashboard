@@ -162,7 +162,7 @@ export default function VacancyList({ onEdit }: VacancyListProps) {
             setLoading(true);
             fetchVacancies();
           }}
-          className="mt-3 text-sm text-[#00e59e] hover:underline"
+          className="mt-3 text-sm text-[#b7cba6] hover:underline"
         >
           Retry
         </button>
@@ -255,7 +255,7 @@ export default function VacancyList({ onEdit }: VacancyListProps) {
                           <button
                             onClick={() => handleReopenClick(vacancy)}
                             disabled={togglingId === vacancy.id}
-                            className="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium text-[#00e59e] ring-1 ring-inset ring-[#00e59e]/30 hover:bg-[#00e59e]/10 transition disabled:opacity-50"
+                            className="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium text-[#b7cba6] ring-1 ring-inset ring-[#b7cba6]/30 hover:bg-[#b7cba6]/10 transition disabled:opacity-50"
                           >
                             {togglingId === vacancy.id ? "Reopening..." : "Reopen"}
                           </button>

@@ -179,8 +179,8 @@ export function UserUsageTable({ selectedUserId }: UserUsageTableProps) {
                     <span
                       className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
                       style={{
-                        background: u.tier === "paid" ? "rgba(0, 229, 158, 0.12)" : "rgba(255,255,255,0.06)",
-                        color: u.tier === "paid" ? "#00e59e" : "#a3a3a0",
+                        background: u.tier === "paid" ? "rgba(183, 203, 166, 0.12)" : "rgba(255,255,255,0.06)",
+                        color: u.tier === "paid" ? "#b7cba6" : "#a3a3a0",
                       }}
                     >
                       {u.tier}

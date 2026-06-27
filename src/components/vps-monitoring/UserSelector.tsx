@@ -49,7 +49,7 @@ export function UserSelector({ selectedUserId, onUserChange }: UserSelectorProps
           onUserChange(e.target.value === "__global__" ? null : e.target.value)
         }
         disabled={isLoading}
-        className="rounded-lg border px-3 py-2 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-[#00e59e]/40 transition-colors"
+        className="rounded-lg border px-3 py-2 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-[#b7cba6]/40 transition-colors"
         style={{
           borderColor: "rgba(255,255,255,0.12)",
           color: "#f7f7f7",

@@ -168,7 +168,7 @@ export default function UsersPage() {
           <select
             value={accountTypeFilter}
             onChange={(e) => setAccountTypeFilter(e.target.value)}
-            className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+            className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
           >
             {ACCOUNT_TYPE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>

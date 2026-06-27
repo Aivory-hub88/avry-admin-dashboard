@@ -22,7 +22,7 @@ interface RoadmapItem extends Record<string, unknown> {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  completed: "bg-[#00e59e]/20 text-[#00e59e]",
+  completed: "bg-[#b7cba6]/20 text-[#b7cba6]",
   in_progress: "bg-yellow-500/20 text-yellow-400",
   pending: "bg-white/10 text-gray-300",
   deferred: "bg-orange-500/20 text-orange-400",
@@ -62,7 +62,7 @@ function ProgressBar({ percent }: { percent: number }) {
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
         <div
-          className="h-full rounded-full bg-[#00e59e]"
+          className="h-full rounded-full bg-[#b7cba6]"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -208,7 +208,7 @@ export default function RoadmapPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Total Initiatives", value: total, color: "text-white" },
-          { label: "Completed", value: completed, color: "text-[#00e59e]" },
+          { label: "Completed", value: completed, color: "text-[#b7cba6]" },
           { label: "In Progress", value: inProgress, color: "text-yellow-400" },
           { label: "High Priority", value: highPriority, color: "text-red-400" },
         ].map((kpi) => (
@@ -236,7 +236,7 @@ export default function RoadmapPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -247,7 +247,7 @@ export default function RoadmapPage() {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50"
+              className="rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
             >
               {PRIORITY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>

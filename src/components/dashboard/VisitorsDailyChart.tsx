@@ -24,7 +24,7 @@ export function VisitorsDailyChart({ data }: VisitorsDailyChartProps) {
       zoom: { enabled: false },
     },
     theme: { mode: "dark" },
-    colors: ["#00e59e"],
+    colors: ["#b7cba6"],
     stroke: { curve: "smooth", width: 2 },
     xaxis: {
       type: "datetime",

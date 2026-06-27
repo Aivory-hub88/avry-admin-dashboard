@@ -165,7 +165,7 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                         Deactivated
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#00e59e]/10 text-[#00e59e] rounded-full text-xs border border-[#00e59e]/20">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#b7cba6]/10 text-[#b7cba6] rounded-full text-xs border border-[#b7cba6]/20">
                         Active
                       </span>
                     )}
@@ -188,7 +188,7 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                             {admin.ban_duration ? (
                               <button
                                 onClick={() => handleReactivate(admin)}
-                                className="w-full px-4 py-2 text-left text-sm text-[#00e59e] hover:bg-white/5 transition-colors"
+                                className="w-full px-4 py-2 text-left text-sm text-[#b7cba6] hover:bg-white/5 transition-colors"
                               >
                                 Reactivate
                               </button>

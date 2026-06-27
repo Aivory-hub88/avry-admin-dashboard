@@ -52,7 +52,7 @@ export default function ReportToSuperadminButton({
 
   if (status === "sent") {
     return (
-      <p className="text-sm text-[#00e59e]">✓ Report sent to superadmin.</p>
+      <p className="text-sm text-[#b7cba6]">✓ Report sent to superadmin.</p>
     );
   }
 
@@ -77,7 +77,7 @@ export default function ReportToSuperadminButton({
         onChange={(e) => setNote(e.target.value)}
         placeholder="Optional: describe the issue..."
         rows={3}
-        className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#00e59e]/50 resize-none"
+        className="w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50 resize-none"
       />
       {status === "error" && (
         <p className="text-xs text-red-400">
@@ -88,7 +88,7 @@ export default function ReportToSuperadminButton({
         <button
           onClick={handleSubmit}
           disabled={status === "sending"}
-          className="flex-1 rounded-lg bg-[#00e59e]/15 px-4 py-2 text-sm font-medium text-[#00e59e] hover:bg-[#00e59e]/25 disabled:opacity-50 transition-colors"
+          className="flex-1 rounded-lg bg-[#b7cba6]/15 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 disabled:opacity-50 transition-colors"
         >
           {status === "sending" ? "Sending..." : "Send Report"}
         </button>
