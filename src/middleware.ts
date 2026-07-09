@@ -52,6 +52,19 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(signinUrl);
     }
 
+    // Legacy tokens (pre-Postgres auth migration) carry no email claim.
+    // Current backend tokens always include email + full_name + username,
+    // so force a fresh sign-in to replace the stale claim set instead of
+    // silently rendering the dashboard with a downgraded role/identity.
+    if (!payload.email) {
+      const signinUrl = request.nextUrl.clone();
+      signinUrl.pathname = "/signin";
+      signinUrl.searchParams.set("error", "session_refresh_required");
+      const res = NextResponse.redirect(signinUrl);
+      res.cookies.delete("aivory_access_token");
+      return res;
+    }
+
     const accountType = resolveAccountType(payload);
     if (!accountType || !["superadmin", "admin"].includes(accountType)) {
       const signinUrl = request.nextUrl.clone();
