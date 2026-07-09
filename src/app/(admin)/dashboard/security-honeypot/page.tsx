@@ -27,7 +27,6 @@ export default function SecurityHoneypotPage() {
 
   useEffect(() => {
     fetchStats();
-    // Auto refresh every 10 seconds
     const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, [fetchStats]);
@@ -50,7 +49,6 @@ export default function SecurityHoneypotPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold" style={{ color: "#f7f7f7" }}>
@@ -61,46 +59,35 @@ export default function SecurityHoneypotPage() {
           </p>
         </div>
         <div>
-           <p className="text-xs text-gray-400">Last updated: {data?.timestamp ? new Date(data.timestamp).toLocaleTimeString() : 'N/A'}</p>
+           <p className="text-xs text-gray-400">Last updated: {data?.timestamp ? new Date(data.timestamp).toLocaleTimeString() : "N/A"}</p>
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
-          title="Tarpit Wasted Time"
-          value={tarpit?.total_time_wasted_human || "0s"}
-          trend="up"
-          trendValue="Live"
+          title="Tarpit Wasted Time (Minutes)"
+          value={tarpit?.total_time_wasted ? Math.round(tarpit.total_time_wasted / 60) : 0}
           isLoading={isLoading}
         />
         <KpiCard
           title="Tarpit Trapped Scanners"
           value={tarpit?.total_connections || 0}
-          subtitle={`Active right now: ${tarpit?.active_connections || 0}`}
-          trend="up"
-          trendValue="Threats delayed"
           isLoading={isLoading}
         />
         <KpiCard
           title="Cowrie SSH Attempts"
           value={cowrie?.login_attempts || 0}
-          trend="down"
-          trendValue={`${cowrie?.unique_ips || 0} Unique IPs`}
           isLoading={isLoading}
         />
         <KpiCard
           title="Captured Commands"
           value={cowrie?.commands?.length || 0}
-          trend="up"
-          trendValue="Post-exploitation"
           isLoading={isLoading}
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Tarpit Recent Connections Table */}
-        <div className="rounded-xl border bg-black border-white/[0.05] shadow-lg">
+        <div className="rounded-xl border bg-[#2a2a27] border-white/[0.05] shadow-lg">
           <div className="px-5 py-4 border-b border-white/[0.05]">
             <h2 className="text-lg font-semibold text-white">Recent Tarpit Victims</h2>
             <p className="text-xs text-gray-400">Bots stuck in endless SSH handshake</p>
@@ -110,17 +97,16 @@ export default function SecurityHoneypotPage() {
               data={recentTarpitConnections}
               columns={[
                 { key: "ip", header: "Attacker IP" },
-                { key: "duration", header: "Wasted (s)", render: (row) => `${row.duration}s` },
+                { key: "duration", header: "Wasted (s)", render: (row: any) => `${row.duration}s` },
                 { key: "bytes", header: "Bytes Sent" },
-                { key: "start", header: "Time", render: (row) => new Date(row.start).toLocaleTimeString() }
+                { key: "start", header: "Time", render: (row: any) => new Date(row.start).toLocaleTimeString() }
               ]}
               isLoading={isLoading}
             />
           </div>
         </div>
 
-        {/* Cowrie Top Credentials */}
-        <div className="rounded-xl border bg-black border-white/[0.05] shadow-lg">
+        <div className="rounded-xl border bg-[#2a2a27] border-white/[0.05] shadow-lg">
           <div className="px-5 py-4 border-b border-white/[0.05]">
             <h2 className="text-lg font-semibold text-white">Brute Force Stats</h2>
             <p className="text-xs text-gray-400">Most attempted SSH credentials</p>
@@ -153,8 +139,7 @@ export default function SecurityHoneypotPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Cowrie Commands */}
-        <div className="rounded-xl border bg-black border-white/[0.05] shadow-lg">
+        <div className="rounded-xl border bg-[#2a2a27] border-white/[0.05] shadow-lg">
           <div className="px-5 py-4 border-b border-white/[0.05]">
             <h2 className="text-lg font-semibold text-white">Attacker Commands</h2>
             <p className="text-xs text-gray-400">Commands executed after successful login</p>
@@ -164,18 +149,17 @@ export default function SecurityHoneypotPage() {
               data={recentCommands}
               columns={[
                 { key: "ip", header: "IP", width: "120px" },
-                { key: "command", header: "Command Executed", render: (row) => <code className="text-xs text-green-400">{row.command}</code> },
-                { key: "timestamp", header: "Time", render: (row) => new Date(row.timestamp).toLocaleTimeString() }
+                { key: "command", header: "Command", render: (row: any) => <code className="text-xs text-green-400">{row.command}</code> },
+                { key: "timestamp", header: "Time", render: (row: any) => new Date(row.timestamp).toLocaleTimeString() }
               ]}
               isLoading={isLoading}
             />
           </div>
         </div>
         
-        {/* Cowrie Recent Logins */}
-        <div className="rounded-xl border bg-black border-white/[0.05] shadow-lg">
+        <div className="rounded-xl border bg-[#2a2a27] border-white/[0.05] shadow-lg">
           <div className="px-5 py-4 border-b border-white/[0.05]">
-            <h2 className="text-lg font-semibold text-white">Successful Honeypot Logins</h2>
+            <h2 className="text-lg font-semibold text-white">Successful Logins</h2>
             <p className="text-xs text-gray-400">Attackers who gained shell access</p>
           </div>
           <div className="p-5">
@@ -183,8 +167,8 @@ export default function SecurityHoneypotPage() {
               data={recentLogins}
               columns={[
                 { key: "ip", header: "IP" },
-                { key: "credentials", header: "Credentials", render: (row) => `${row.username} / ${row.password}` },
-                { key: "timestamp", header: "Time", render: (row) => new Date(row.timestamp).toLocaleTimeString() }
+                { key: "credentials", header: "Creds", render: (row: any) => `${row.username}/${row.password}` },
+                { key: "timestamp", header: "Time", render: (row: any) => new Date(row.timestamp).toLocaleTimeString() }
               ]}
               isLoading={isLoading}
             />
