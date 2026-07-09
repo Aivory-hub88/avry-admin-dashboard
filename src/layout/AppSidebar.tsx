@@ -38,6 +38,7 @@ const allNavItems = [
   { name: "Execution Logs", path: "/dashboard/logs", icon: <TableIcon />, superadminOnly: false },
   { name: "Impersonation History", path: "/dashboard/impersonation-history", icon: <EyeIcon />, superadminOnly: true },
   { name: "VPS Monitoring", path: "/dashboard/vps-monitoring", icon: <ServerIcon />, superadminOnly: false },
+  { name: "Security & Honeypot", path: "/dashboard/security-honeypot", icon: <BoxCubeIcon />, superadminOnly: true },
   { name: "Admin Accounts", path: "/dashboard/admin-accounts", icon: <GroupIcon />, superadminOnly: true },
   { name: "Settings", path: "/dashboard/settings", icon: <PageIcon />, superadminOnly: false },
 ];
