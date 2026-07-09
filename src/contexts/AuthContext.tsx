@@ -1,13 +1,5 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import {
-  decodeJwt,
-  AivoryJwtPayload,
-  isTokenExpired,
-  getAccountType,
-  getFullName,
-  getUserId,
-} from "@/lib/jwt";
 import { getCookie, deleteCookie } from "@/lib/cookies";
 import { bffFetch } from "@/lib/bff";
 
@@ -37,34 +29,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = getCookie("aivory_access_token");
-    if (token) {
+    // Identity comes from the server, never from client-side cookie parsing:
+    // the browser can hold duplicate `aivory_access_token` cookies (host-only
+    // vs domain=.aivory.id) and document.cookie may surface a different
+    // duplicate than the one the middleware validated, desyncing the UI
+    // (null role → superadmin menus hidden, "A" avatar). /api/auth/me
+    // inspects every duplicate server-side and returns the valid identity.
+    let cancelled = false;
+    (async () => {
       try {
-        const payload: AivoryJwtPayload = decodeJwt(token);
-        const accountType = getAccountType(payload);
-
-        if (
-          !isTokenExpired(payload) &&
-          (accountType === "superadmin" || accountType === "admin")
-        ) {
-          // getFullName already falls back to the email prefix, so fullName
-          // will always be a non-empty string when email is present.
-          const resolvedFullName =
-            getFullName(payload) ??
-            (payload.email ? payload.email.split("@")[0] : "Admin");
-
-          setUser({
-            userId: getUserId(payload),
-            email: payload.email,
-            accountType: accountType as "superadmin" | "admin",
-            fullName: resolvedFullName,
-          });
+        const res = await bffFetch("/api/auth/me");
+        if (!cancelled && res.ok) {
+          const me = await res.json();
+          if (
+            me?.accountType === "superadmin" ||
+            me?.accountType === "admin"
+          ) {
+            setUser({
+              userId: me.userId ?? "",
+              email: me.email ?? "",
+              accountType: me.accountType,
+              fullName: me.fullName,
+            });
+          }
         }
       } catch {
-        // invalid token — ignore
+        // network error — leave user null; middleware still gates pages
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const logout = async () => {
@@ -78,8 +75,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore logout errors — clear cookies regardless
     } finally {
-      deleteCookie("aivory_access_token");
-      deleteCookie("aivory_refresh_token");
+      // Delete BOTH variants — the landing page stamps a domain=.aivory.id
+      // duplicate that a host-only delete would leave behind.
+      for (const name of ["aivory_access_token", "aivory_refresh_token"]) {
+        deleteCookie(name);
+        deleteCookie(name, { domain: ".aivory.id" });
+      }
       setUser(null);
       window.location.href = "/admin/signin";
     }

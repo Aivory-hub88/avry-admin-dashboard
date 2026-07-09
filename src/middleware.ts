@@ -34,49 +34,66 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Require admin auth for all other paths (including "/" which is the root admin page)
-  const token = request.cookies.get("aivory_access_token")?.value;
+  // Require admin auth for all other paths (including "/" which is the root
+  // admin page). The browser may send DUPLICATE `aivory_access_token` cookies
+  // (host-only vs domain=.aivory.id — the landing navbar stamps the latter
+  // from stale localStorage), so parse the raw header and accept the request
+  // if ANY duplicate is a valid, current admin token. Legacy tokens (no email
+  // claim — pre-Postgres-migration) never count as valid.
+  const rawCookies = request.headers.get("cookie") ?? "";
+  const tokens: string[] = [];
+  for (const part of rawCookies.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq !== -1 && part.slice(0, eq).trim() === "aivory_access_token") {
+      const v = part.slice(eq + 1).trim();
+      if (v) tokens.push(decodeURIComponent(v));
+    }
+  }
 
-  if (!token) {
+  if (tokens.length === 0) {
     const signinUrl = request.nextUrl.clone();
     signinUrl.pathname = "/signin";
     return NextResponse.redirect(signinUrl);
   }
 
-  try {
-    const payload = jwtDecode<JwtPayload>(token);
-
-    if (payload.exp * 1000 < Date.now()) {
-      const signinUrl = request.nextUrl.clone();
-      signinUrl.pathname = "/signin";
-      return NextResponse.redirect(signinUrl);
+  let sawLegacy = false;
+  let sawInsufficient = false;
+  for (const token of tokens) {
+    try {
+      const payload = jwtDecode<JwtPayload>(token);
+      if (payload.exp * 1000 < Date.now()) continue;
+      if (!payload.email) {
+        sawLegacy = true;
+        continue;
+      }
+      const accountType = resolveAccountType(payload);
+      if (!accountType || !["superadmin", "admin"].includes(accountType)) {
+        sawInsufficient = true;
+        continue;
+      }
+      // Valid admin token found among the duplicates — allow.
+      return NextResponse.next();
+    } catch {
+      // undecodable duplicate — try the next one
     }
-
-    // Legacy tokens (pre-Postgres auth migration) carry no email claim.
-    // Current backend tokens always include email + full_name + username,
-    // so force a fresh sign-in to replace the stale claim set instead of
-    // silently rendering the dashboard with a downgraded role/identity.
-    if (!payload.email) {
-      const signinUrl = request.nextUrl.clone();
-      signinUrl.pathname = "/signin";
-      signinUrl.searchParams.set("error", "session_refresh_required");
-      const res = NextResponse.redirect(signinUrl);
-      res.cookies.delete("aivory_access_token");
-      return res;
-    }
-
-    const accountType = resolveAccountType(payload);
-    if (!accountType || !["superadmin", "admin"].includes(accountType)) {
-      const signinUrl = request.nextUrl.clone();
-      signinUrl.pathname = "/signin";
-      signinUrl.searchParams.set("error", "insufficient_permissions");
-      return NextResponse.redirect(signinUrl);
-    }
-  } catch {
-    const signinUrl = request.nextUrl.clone();
-    signinUrl.pathname = "/signin";
-    return NextResponse.redirect(signinUrl);
   }
 
-  return NextResponse.next();
+  const signinUrl = request.nextUrl.clone();
+  signinUrl.pathname = "/signin";
+  if (sawLegacy) {
+    signinUrl.searchParams.set("error", "session_refresh_required");
+  } else if (sawInsufficient) {
+    signinUrl.searchParams.set("error", "insufficient_permissions");
+  }
+  const res = NextResponse.redirect(signinUrl);
+  // Expire both cookie variants so stale duplicates can't keep bouncing us.
+  res.headers.append(
+    "Set-Cookie",
+    "aivory_access_token=; Path=/; Max-Age=0; SameSite=Lax"
+  );
+  res.headers.append(
+    "Set-Cookie",
+    "aivory_access_token=; Path=/; Domain=.aivory.id; Max-Age=0; SameSite=Lax"
+  );
+  return res;
 }

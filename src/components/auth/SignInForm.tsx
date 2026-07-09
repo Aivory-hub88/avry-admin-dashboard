@@ -2,7 +2,7 @@
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
-import { setCookie } from "@/lib/cookies";
+import { setCookie, deleteCookie } from "@/lib/cookies";
 import { bffFetch } from "@/lib/bff";
 import { decodeJwt } from "@/lib/jwt";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -68,7 +68,15 @@ function SignInFormInner() {
         return;
       }
 
-      setCookie("aivory_access_token", access_token, { 
+      // Purge stale duplicates first — the landing navbar may have stamped a
+      // domain=.aivory.id copy of these cookies with an obsolete token, and
+      // duplicate cookies desync middleware vs client identity resolution.
+      for (const name of ["aivory_access_token", "aivory_refresh_token"]) {
+        deleteCookie(name);
+        deleteCookie(name, { domain: ".aivory.id" });
+      }
+
+      setCookie("aivory_access_token", access_token, {
         maxAge: 3600,
         path: "/",
         sameSite: "Lax",
