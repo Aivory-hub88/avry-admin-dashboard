@@ -32,7 +32,7 @@ function getDisplayName(email: string, fullName?: string): string {
 }
 
 export default function UserDropdown() {
-  const { user, role, logout } = useAuth();
+  const { user, role, isLoading, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   const email = user?.email ?? "";
@@ -41,6 +41,20 @@ export default function UserDropdown() {
   // Role-specific avatar color: green for superadmin, gray for admin.
   const avatarColor =
     role === "superadmin" ? "#b7cba6" : role === "admin" ? "#6b7280" : stringToColor(email || "admin");
+
+  // While /api/auth/me is in flight (every fresh page load / full navigation
+  // remounts AuthProvider), `user` is briefly null. Rendering the fallback
+  // ("A" on a hash-colored pill, which happens to land on pink for the
+  // string "admin") looked like a stale/wrong-version admin build flashing
+  // in. Show a neutral skeleton instead until identity actually resolves.
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2.5 px-2 py-1.5">
+        <span className="w-8 h-8 rounded-full bg-white/10 animate-pulse flex-shrink-0" />
+        <span className="hidden sm:block w-16 h-3.5 rounded bg-white/10 animate-pulse" />
+      </div>
+    );
+  }
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();

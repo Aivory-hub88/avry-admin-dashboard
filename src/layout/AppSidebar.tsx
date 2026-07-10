@@ -49,15 +49,20 @@ interface AppSidebarProps {
 
 const AppSidebar: React.FC<AppSidebarProps> = ({ unreadReports = 0 }) => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
-  const { role } = useAuth();
+  const { role, isLoading } = useAuth();
   const pathname = usePathname();
 
   const isActive = (path: string) =>
     pathname === path || (path !== "/dashboard" && pathname.startsWith(path));
   const showExpanded = isExpanded || isHovered || isMobileOpen;
 
+  // While identity is still resolving (fresh page load — role is briefly
+  // null), don't filter superadmin-only items out: that flashed a demoted
+  // sidebar (missing Admin Accounts / Impersonation History / Honeypot) that
+  // looked like a stale/wrong admin build loading before snapping to the
+  // correct one.
   const navItems = allNavItems.filter(
-    (item) => !item.superadminOnly || role === "superadmin"
+    (item) => !item.superadminOnly || role === "superadmin" || isLoading
   );
 
   return (
