@@ -5,6 +5,7 @@
  * Queries the backend /api/v1/admin/users endpoint to get user list.
  */
 import { NextRequest, NextResponse } from "next/server";
+import { getAccessToken } from "@/lib/bff";
 import { jwtDecode } from "jwt-decode";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ function validateAdminToken(token: string | undefined): boolean {
 const BACKEND_URL = process.env.BACKEND_SERVICE_URL || "http://avry-backend:8081";
 
 export async function GET(request: NextRequest) {
-  const token = request.cookies.get("aivory_access_token")?.value;
+  const token = getAccessToken(request) ?? undefined;
   if (!validateAdminToken(token)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { jwtDecode } from "jwt-decode";
 
 // ─── Service URL map ─────────────────────────────────────────────────────────
 const SERVICE_URLS: Record<string, string | undefined> = {
@@ -31,13 +32,56 @@ const DEFAULT_BACKEND =
 /**
  * Extract the bearer token from the incoming request's Authorization header
  * or from the `aivory_access_token` cookie.
+ *
+ * The browser can send DUPLICATE `aivory_access_token` cookies (host-only vs
+ * domain=.aivory.id — the landing page stamps the latter from stale
+ * localStorage). `request.cookies.get()` silently picks one of them; if it
+ * picks the stale duplicate, that token gets forwarded to the backend, fails
+ * signature verification there, and every proxied feature breaks (HTTP
+ * 401/403 on charts, "Could not load users", ...). So parse the raw Cookie
+ * header and prefer the duplicate that looks like a current admin token
+ * (non-expired, admin/superadmin, has the email claim legacy tokens lack).
  */
 export function getAccessToken(request: NextRequest): string | null {
   const authHeader = request.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     return authHeader.slice(7);
   }
-  return request.cookies.get("aivory_access_token")?.value ?? null;
+
+  const candidates: string[] = [];
+  const raw = request.headers.get("cookie") ?? "";
+  for (const part of raw.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq !== -1 && part.slice(0, eq).trim() === "aivory_access_token") {
+      const v = part.slice(eq + 1).trim();
+      if (v) candidates.push(decodeURIComponent(v));
+    }
+  }
+  if (candidates.length === 0) return null;
+  if (candidates.length === 1) return candidates[0];
+
+  // Multiple duplicates — rank them: current-format valid admin token first.
+  let fallback: string | null = null;
+  for (const token of candidates) {
+    try {
+      const payload = jwtDecode<{
+        exp: number;
+        email?: string;
+        account_type?: string;
+        user_metadata?: { account_type?: string };
+      }>(token);
+      if (payload.exp * 1000 < Date.now()) continue;
+      const accountType =
+        payload.account_type ?? payload.user_metadata?.account_type;
+      const isAdmin =
+        accountType === "superadmin" || accountType === "admin";
+      if (isAdmin && payload.email) return token; // current format — best
+      if (isAdmin && !fallback) fallback = token; // legacy but plausible
+    } catch {
+      // undecodable duplicate — skip
+    }
+  }
+  return fallback ?? candidates[0];
 }
 
 /**

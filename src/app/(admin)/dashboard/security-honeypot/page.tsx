@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
+import { bffFetch } from "@/lib/bff";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import DataTable, { Column } from "@/components/shared/DataTable";
 import ErrorState from "@/components/shared/ErrorState";
@@ -12,7 +13,10 @@ export default function SecurityHoneypotPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/honeypot");
+      // bffFetch prepends the "/admin" basePath — a bare fetch("/api/...")
+      // leaves this container entirely (Traefik routes /api to the user
+      // dashboard) and returns HTML instead of stats.
+      const res = await bffFetch("/api/admin/honeypot");
       if (!res.ok) {
         throw new Error("Failed to fetch honeypot stats");
       }

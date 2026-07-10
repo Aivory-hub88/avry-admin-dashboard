@@ -21,6 +21,7 @@
  * safety and forwarded as a filter parameter.
  */
 import { NextRequest, NextResponse } from "next/server";
+import { getAccessToken } from "@/lib/bff";
 import { jwtDecode } from "jwt-decode";
 import {
   prometheusInstant,
@@ -439,7 +440,7 @@ function unixToIso(value: string): string {
 
 export async function GET(request: NextRequest) {
   // 1. Validate admin/superadmin role from cookie
-  const token = request.cookies.get("aivory_access_token")?.value;
+  const token = getAccessToken(request) ?? undefined;
   const auth = validateAdminToken(token);
   if (!auth.valid) {
     return NextResponse.json(

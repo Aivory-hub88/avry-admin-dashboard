@@ -45,13 +45,27 @@ export async function GET(request: NextRequest) {
       if (accountType !== "superadmin" && accountType !== "admin") continue;
       if (!payload.email) continue; // legacy token — force re-login
 
-      return NextResponse.json({
+      const res = NextResponse.json({
         userId: getUserId(payload),
         email: payload.email,
         accountType,
         fullName:
           getFullName(payload) ?? payload.email.split("@")[0],
       });
+      if (tokens.length > 1) {
+        // Self-heal a poisoned cookie jar: expire the domain-wide duplicate
+        // the landing page stamps, then re-assert the valid token host-only
+        // so every subsequent request carries exactly one good cookie.
+        res.headers.append(
+          "Set-Cookie",
+          "aivory_access_token=; Path=/; Domain=.aivory.id; Max-Age=0; SameSite=Lax"
+        );
+        res.headers.append(
+          "Set-Cookie",
+          `aivory_access_token=${token}; Path=/; Max-Age=3600; SameSite=Lax`
+        );
+      }
+      return res;
     } catch {
       // undecodable duplicate — try the next one
     }

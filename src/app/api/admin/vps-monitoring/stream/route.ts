@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAccessToken } from "@/lib/bff";
 import { handleVpsPanelDirect, validateAdminToken } from "../route";
 import { type VpsPanelRequestType } from "../query-routing";
 
@@ -13,7 +14,7 @@ let activeConnections = 0;
 
 export async function GET(req: NextRequest) {
   // Validate token
-  const token = req.cookies.get("aivory_access_token")?.value;
+  const token = getAccessToken(req) ?? undefined;
   const authResponse = validateAdminToken(token);
   if (!authResponse.valid) return NextResponse.json({ error: authResponse.error }, { status: 401 });
 
