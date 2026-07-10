@@ -401,7 +401,7 @@ function AdminAccountsTable({ currentUserEmail }: AdminAccountsTableProps) {
 // ─── Settings Page ─────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
-  const { user, role, logout } = useAuth();
+  const { user, role, isLoading: authLoading, logout } = useAuth();
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "(not set)";
 
@@ -436,8 +436,18 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ── Admin Accounts (superadmin only) ── */}
-      {role === "superadmin" && (
+      {/* ── Admin Accounts (superadmin only) ──
+          role is briefly null while /api/auth/me resolves. Rendering nothing
+          in that window hid this section for real superadmins on every fresh
+          load (the same "demoted" flash AppSidebar had) — but rendering the
+          real table speculatively would briefly expose it to a plain admin
+          too. Show a neutral skeleton while identity is still resolving. */}
+      {authLoading ? (
+        <section className="rounded-xl border border-white/[0.07] bg-[#2a2a27] p-6 space-y-4">
+          <div className="h-4 w-32 rounded bg-white/10 animate-pulse" />
+          <div className="h-24 w-full rounded bg-white/5 animate-pulse" />
+        </section>
+      ) : role === "superadmin" && (
         <section className="rounded-xl border border-white/[0.07] bg-[#2a2a27] p-6 space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Admin Accounts</h2>
           <AdminAccountsTable currentUserEmail={user?.email ?? ""} />

@@ -22,7 +22,7 @@ interface Admin {
 }
 
 export default function AdminAccountsPage() {
-  const { role } = useAuth();
+  const { role, isLoading: authLoading } = useAuth();
   const isSuperAdmin = role === "superadmin";
 
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -83,8 +83,15 @@ export default function AdminAccountsPage() {
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
+  // Identity (role) and the admins list load independently and race — role
+  // starts null until /api/auth/me resolves, which used to make this guard
+  // read "not a superadmin" for a frame even for actual superadmins whenever
+  // fetchAdmins() finished first, flashing a false "Access Denied" page.
+  // Wait for identity to resolve before deciding access at all.
+  if (authLoading) return <LoadingSkeleton rows={8} />;
+
   // Access guard
-  if (!isLoading && !isSuperAdmin) {
+  if (!isSuperAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <p className="text-lg font-semibold text-white mb-2">Access Denied</p>
