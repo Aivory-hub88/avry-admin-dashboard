@@ -8,6 +8,7 @@ import LoadingSkeleton from "@/components/shared/LoadingSkeleton";
 
 export default function SecurityHoneypotPage() {
   const [data, setData] = useState<any>(null);
+  const [trapHits, setTrapHits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,11 +30,26 @@ export default function SecurityHoneypotPage() {
     }
   }, []);
 
+  const fetchTrapHits = useCallback(async () => {
+    try {
+      const res = await bffFetch("/api/admin/trap-hits");
+      if (!res.ok) return;
+      const json = await res.json();
+      setTrapHits(json.hits || []);
+    } catch {
+      // Non-critical panel — leave it empty on failure rather than blocking the page.
+    }
+  }, []);
+
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 10000);
+    fetchTrapHits();
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchTrapHits();
+    }, 10000);
     return () => clearInterval(interval);
-  }, [fetchStats]);
+  }, [fetchStats, fetchTrapHits]);
 
   if (isLoading && !data) {
     return <LoadingSkeleton />;
@@ -177,6 +193,25 @@ export default function SecurityHoneypotPage() {
               isLoading={isLoading}
             />
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border bg-[#2a2a27] border-white/[0.05] shadow-lg">
+        <div className="px-5 py-4 border-b border-white/[0.05]">
+          <h2 className="text-lg font-semibold text-white">Scraper Trap Hits</h2>
+          <p className="text-xs text-gray-400">Hits on the hidden canary links (AiTrap / CanaryLink) on the public site</p>
+        </div>
+        <div className="p-5">
+          <DataTable
+            data={trapHits.map((h: any, i: number) => ({ ...h, id: h.hit_id || i }))}
+            columns={[
+              { key: "ip", header: "IP" },
+              { key: "user_agent", header: "User-Agent" },
+              { key: "path", header: "Path" },
+              { key: "created_at", header: "Time", render: (row: any) => new Date(row.created_at).toLocaleString() },
+            ]}
+            isLoading={isLoading}
+          />
         </div>
       </div>
     </div>
