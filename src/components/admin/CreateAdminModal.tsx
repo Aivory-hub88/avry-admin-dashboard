@@ -4,6 +4,7 @@ import { bffFetch } from "@/lib/bff";
 import React, { useState } from "react";
 import { X, Copy, RefreshCw } from "lucide-react";
 import { PasswordStrengthMeter } from "../ui/password-strength-meter/PasswordStrengthMeter";
+import { ALL_MODULES, DEFAULT_DEMO_MODULES, HOME_MODULE_KEY } from "@/lib/demoModules";
 
 interface CreateAdminModalProps {
   isOpen: boolean;
@@ -16,29 +17,6 @@ interface CreateAdminModalProps {
    */
   accountType?: "admin" | "demo";
 }
-
-/** All dashboard modules a demo account can be granted access to. Keep the
- * `key` values in sync with VALID_MODULE_KEYS in the backend's
- * app/routes/admin_users.py and DEMO_ALLOWED_NAV_KEYS in the user
- * dashboard's lib/moduleAccess.ts. */
-const ALL_MODULES: { key: string; label: string }[] = [
-  { key: "console", label: "AI Console" },
-  { key: "diagnostics", label: "Diagnostics" },
-  { key: "blueprint", label: "Blueprint" },
-  { key: "roadmap", label: "Roadmap" },
-  { key: "workflows", label: "Workflows" },
-  { key: "executionLogs", label: "Execution Logs" },
-  { key: "integrations", label: "Integrations" },
-  { key: "templates", label: "Automation Templates" },
-  { key: "agents", label: "Agents" },
-  { key: "profile", label: "Overview" },
-];
-
-/** Pre-checked when the modal opens — matches the old hardcoded fixed set. */
-const DEFAULT_DEMO_MODULES = ["console", "diagnostics", "blueprint", "roadmap"];
-
-/** The demo account's home/redirect route — always included, can't be unchecked. */
-const HOME_MODULE_KEY = "console";
 
 export function CreateAdminModal({
   isOpen,

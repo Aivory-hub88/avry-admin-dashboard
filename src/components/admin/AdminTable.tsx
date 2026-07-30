@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { MoreVertical, Shield, ShieldAlert, FlaskConical } from "lucide-react";
 import { DeactivateModal } from "./DeactivateModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
+import { EditModulesModal } from "./EditModulesModal";
 
 interface Admin {
   id: string;
@@ -16,6 +17,7 @@ interface Admin {
   banned_at: string | null;
   ban_duration: string | null;
   email_confirmed_at: string | null;
+  allowed_modules: string[] | null;
 }
 
 interface AdminTableProps {
@@ -30,6 +32,7 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showModulesModal, setShowModulesModal] = useState(false);
   const [showMenu, setShowMenu] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,6 +74,12 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   const handleChangePassword = (admin: Admin) => {
     setSelectedAdmin(admin);
     setShowPasswordModal(true);
+    setShowMenu(null);
+  };
+
+  const handleEditModules = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    setShowModulesModal(true);
     setShowMenu(null);
   };
 
@@ -203,6 +212,14 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                             >
                               Change Password
                             </button>
+                            {admin.account_type === "demo" && (
+                              <button
+                                onClick={() => handleEditModules(admin)}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-white/5 transition-colors"
+                              >
+                                Edit Module Access
+                              </button>
+                            )}
                             {admin.ban_duration ? (
                               <button
                                 onClick={() => handleReactivate(admin)}
@@ -257,6 +274,24 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
           onSuccess={() => {
             setShowPasswordModal(false);
             setSelectedAdmin(null);
+          }}
+        />
+      )}
+
+      {selectedAdmin && showModulesModal && (
+        <EditModulesModal
+          isOpen={showModulesModal}
+          userId={selectedAdmin.id}
+          userEmail={selectedAdmin.email}
+          initialModules={selectedAdmin.allowed_modules ?? []}
+          onClose={() => {
+            setShowModulesModal(false);
+            setSelectedAdmin(null);
+          }}
+          onSuccess={() => {
+            setShowModulesModal(false);
+            setSelectedAdmin(null);
+            fetchAdmins();
           }}
         />
       )}
