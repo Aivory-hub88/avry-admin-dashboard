@@ -32,6 +32,7 @@ export default function AdminAccountsPage() {
   
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createType, setCreateType] = useState<"admin" | "demo">("admin");
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
 
@@ -111,12 +112,26 @@ export default function AdminAccountsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-white">Admin Accounts</h1>
         <WriteGate>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors"
-          >
-            + Create Admin
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setCreateType("demo");
+                setShowCreateModal(true);
+              }}
+              className="rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors"
+            >
+              + Create Demo User
+            </button>
+            <button
+              onClick={() => {
+                setCreateType("admin");
+                setShowCreateModal(true);
+              }}
+              className="rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors"
+            >
+              + Create Admin
+            </button>
+          </div>
         </WriteGate>
       </div>
 
@@ -133,16 +148,21 @@ export default function AdminAccountsPage() {
         refreshTrigger={refreshTrigger} 
       />
 
-      {/* Create Admin Modal */}
+      {/* Create Admin / Demo User Modal */}
       {showCreateModal && (
         <CreateAdminModal
           isOpen={showCreateModal}
+          accountType={createType}
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);
             setRefreshTrigger((prev) => prev + 1);
             fetchAdmins();
-            setSuccessMessage("Admin account created successfully.");
+            setSuccessMessage(
+              createType === "demo"
+                ? "Demo user created successfully."
+                : "Admin account created successfully."
+            );
             setTimeout(() => setSuccessMessage(null), 3000);
           }}
         />

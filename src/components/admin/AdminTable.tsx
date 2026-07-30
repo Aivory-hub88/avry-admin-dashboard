@@ -2,8 +2,9 @@
 import { bffFetch } from "@/lib/bff";
 
 import React, { useEffect, useState } from "react";
-import { MoreVertical, Shield, ShieldAlert } from "lucide-react";
+import { MoreVertical, Shield, ShieldAlert, FlaskConical } from "lucide-react";
 import { DeactivateModal } from "./DeactivateModal";
+import { ChangePasswordModal } from "./ChangePasswordModal";
 
 interface Admin {
   id: string;
@@ -28,6 +29,7 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   const [error, setError] = useState("");
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showMenu, setShowMenu] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,6 +65,12 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   const handleReactivate = (admin: Admin) => {
     setSelectedAdmin({ ...admin, ban_duration: "reactivate" });
     setShowDeactivateModal(true);
+    setShowMenu(null);
+  };
+
+  const handleChangePassword = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    setShowPasswordModal(true);
     setShowMenu(null);
   };
 
@@ -147,10 +155,14 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                     <div className="flex items-center gap-1">
                       {admin.account_type === "superadmin" ? (
                         <ShieldAlert className="text-[#a855f7]" size={16} />
+                      ) : admin.account_type === "demo" ? (
+                        <FlaskConical className="text-[#f59e0b]" size={16} />
                       ) : (
                         <Shield className="text-[#3b82f6]" size={16} />
                       )}
-                      <span className="capitalize">{admin.account_type}</span>
+                      <span className="capitalize">
+                        {admin.account_type === "demo" ? "Demo User" : admin.account_type}
+                      </span>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-400">
@@ -185,6 +197,12 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                         </button>
                         {showMenu === admin.id && (
                           <div className="absolute right-0 mt-2 w-48 bg-[#2a2a2a] border border-white/10 rounded-md shadow-lg z-10">
+                            <button
+                              onClick={() => handleChangePassword(admin)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-white/5 transition-colors"
+                            >
+                              Change Password
+                            </button>
                             {admin.ban_duration ? (
                               <button
                                 onClick={() => handleReactivate(admin)}
@@ -223,6 +241,22 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
           }}
           onSuccess={() => {
             fetchAdmins();
+          }}
+        />
+      )}
+
+      {selectedAdmin && showPasswordModal && (
+        <ChangePasswordModal
+          isOpen={showPasswordModal}
+          userId={selectedAdmin.id}
+          userEmail={selectedAdmin.email}
+          onClose={() => {
+            setShowPasswordModal(false);
+            setSelectedAdmin(null);
+          }}
+          onSuccess={() => {
+            setShowPasswordModal(false);
+            setSelectedAdmin(null);
           }}
         />
       )}

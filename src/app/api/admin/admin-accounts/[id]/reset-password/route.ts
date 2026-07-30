@@ -16,6 +16,15 @@ export async function POST(
     return response;
   }
 
+  // Optional body: { password } to set a specific password. When absent, the
+  // backend generates a strong password and returns it.
+  let body: unknown = undefined;
+  try {
+    body = await request.json();
+  } catch {
+    body = undefined;
+  }
+
   if (BACKEND_URL) {
     try {
       const res = await fetch(`${BACKEND_URL}/api/v1/admin/admin-accounts/${id}/reset-password`, {
@@ -24,6 +33,7 @@ export async function POST(
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
       });
 
       if (res.status === 401) {
