@@ -17,8 +17,28 @@ interface CreateAdminModalProps {
   accountType?: "admin" | "demo";
 }
 
-/** Modules a demo account is allowed to use — shown for context in the modal. */
-const DEMO_MODULES = ["Diagnostic", "Blueprint", "Roadmap", "AI Console"];
+/** All dashboard modules a demo account can be granted access to. Keep the
+ * `key` values in sync with VALID_MODULE_KEYS in the backend's
+ * app/routes/admin_users.py and DEMO_ALLOWED_NAV_KEYS in the user
+ * dashboard's lib/moduleAccess.ts. */
+const ALL_MODULES: { key: string; label: string }[] = [
+  { key: "console", label: "AI Console" },
+  { key: "diagnostics", label: "Diagnostics" },
+  { key: "blueprint", label: "Blueprint" },
+  { key: "roadmap", label: "Roadmap" },
+  { key: "workflows", label: "Workflows" },
+  { key: "executionLogs", label: "Execution Logs" },
+  { key: "integrations", label: "Integrations" },
+  { key: "templates", label: "Automation Templates" },
+  { key: "agents", label: "Agents" },
+  { key: "profile", label: "Overview" },
+];
+
+/** Pre-checked when the modal opens — matches the old hardcoded fixed set. */
+const DEFAULT_DEMO_MODULES = ["console", "diagnostics", "blueprint", "roadmap"];
+
+/** The demo account's home/redirect route — always included, can't be unchecked. */
+const HOME_MODULE_KEY = "console";
 
 export function CreateAdminModal({
   isOpen,
@@ -40,8 +60,16 @@ export function CreateAdminModal({
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [selectedModules, setSelectedModules] = useState<string[]>(DEFAULT_DEMO_MODULES);
 
   if (!isOpen) return null;
+
+  const toggleModule = (key: string) => {
+    if (key === HOME_MODULE_KEY) return; // always included, not toggleable
+    setSelectedModules((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
 
   const handleGeneratePassword = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
@@ -132,6 +160,7 @@ export function CreateAdminModal({
           fullName,
           accountType,
           autoGeneratePassword: false, // We send the generated password manually
+          ...(isDemo ? { allowedModules: selectedModules } : {}),
         }),
       });
 
@@ -163,6 +192,7 @@ export function CreateAdminModal({
     setError("");
     setSuccess(false);
     setLoading(false);
+    setSelectedModules(DEFAULT_DEMO_MODULES);
     onClose();
   };
 
@@ -195,10 +225,40 @@ export function CreateAdminModal({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {isDemo && (
-              <div className="rounded-md bg-[#b7cba6]/10 border border-[#b7cba6]/30 px-3 py-2 text-xs text-[#b7cba6]">
-                Demo users can only access{" "}
-                <span className="font-semibold text-white">{DEMO_MODULES.join(", ")}</span>.
-                All other modules are locked. The password can be changed later.
+              <div className="space-y-2">
+                <div className="rounded-md bg-[#b7cba6]/10 border border-[#b7cba6]/30 px-3 py-2 text-xs text-[#b7cba6]">
+                  Choose which dashboard modules this demo account can access.
+                  Unchecked modules are hidden from the sidebar and locked if
+                  visited directly by URL. The password can be changed later.
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {ALL_MODULES.map((m) => {
+                    const isHome = m.key === HOME_MODULE_KEY;
+                    const checked = selectedModules.includes(m.key);
+                    return (
+                      <label
+                        key={m.key}
+                        className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+                          isHome
+                            ? "border-white/5 bg-white/5 text-gray-400 cursor-not-allowed"
+                            : "border-white/10 bg-[#2a2a27] text-gray-200 cursor-pointer hover:border-[#b7cba6]/40"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={isHome}
+                          onChange={() => toggleModule(m.key)}
+                          className="accent-[#b7cba6]"
+                        />
+                        <span>{m.label}</span>
+                        {isHome && (
+                          <span className="text-[10px] text-gray-500">(home)</span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             )}
             <div>
