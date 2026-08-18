@@ -24,9 +24,12 @@ import {
 const allNavItems = [
   { name: "Overview", path: "/dashboard", icon: <GridIcon />, superadminOnly: false },
   { name: "Users & Credits", path: "/dashboard/users", icon: <UserCircleIcon />, superadminOnly: false },
+  { name: "Payments", path: "/dashboard/payments", icon: <TableIcon />, superadminOnly: false },
+  { name: "Currency", path: "/dashboard/currency", icon: <PieChartIcon />, superadminOnly: false },
   { name: "Agent Activity", path: "/dashboard/agents", icon: <BoxCubeIcon />, superadminOnly: false },
   { name: "Agent Management", path: "/dashboard/agent-management", icon: <BoxCubeIcon />, superadminOnly: false },
   { name: "Workflow Runs", path: "/dashboard/workflows", icon: <ListIcon />, superadminOnly: false },
+  { name: "Free Assessment", path: "/dashboard/free-assessment", icon: <PieChartIcon />, superadminOnly: false },
   { name: "Deep Diagnostics", path: "/dashboard/diagnostics", icon: <PieChartIcon />, superadminOnly: false },
   { name: "Blueprints", path: "/dashboard/blueprints", icon: <DocsIcon />, superadminOnly: false },
   { name: "Blog", path: "/dashboard/blog", icon: <PageIcon />, superadminOnly: false },
