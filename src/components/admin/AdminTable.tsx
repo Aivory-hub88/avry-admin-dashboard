@@ -2,9 +2,10 @@
 import { bffFetch } from "@/lib/bff";
 
 import React, { useEffect, useState } from "react";
-import { MoreVertical, Shield, ShieldAlert, FlaskConical } from "lucide-react";
+import { MoreVertical, Shield, ShieldAlert, FlaskConical, LogOut } from "lucide-react";
 import { DeactivateModal } from "./DeactivateModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
+import { ResetPasswordModal } from "./ResetPasswordModal";
 import { EditModulesModal } from "./EditModulesModal";
 
 interface Admin {
@@ -32,8 +33,11 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [showModulesModal, setShowModulesModal] = useState(false);
   const [showMenu, setShowMenu] = useState<string | null>(null);
+  const [loggingOutId, setLoggingOutId] = useState<string | null>(null);
+  const [logoutError, setLogoutError] = useState("");
 
   useEffect(() => {
     fetchAdmins();
@@ -77,10 +81,50 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
     setShowMenu(null);
   };
 
+  // Distinct from "Change Password": this mails the account holder a one-time
+  // link so they choose their own, which is what you want when the admin
+  // resetting it should not learn the credential.
+  const handleResetPassword = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    setShowResetModal(true);
+    setShowMenu(null);
+  };
+
   const handleEditModules = (admin: Admin) => {
     setSelectedAdmin(admin);
     setShowModulesModal(true);
     setShowMenu(null);
+  };
+
+  // Demo accounts get handed to different prospects over time; this ends
+  // every active session and wipes the account's Deep Diagnostic/Blueprint/
+  // Roadmap/Workflow content so the next demo doesn't inherit the last one's
+  // data. Unlike the other row actions this has no follow-up modal — the
+  // confirm() below is the only guard before it runs.
+  const handleLogout = async (admin: Admin) => {
+    setShowMenu(null);
+    if (
+      !window.confirm(
+        `Log out ${admin.email} and clear its demo data (diagnostics, blueprint, roadmap, workflows)? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setLoggingOutId(admin.id);
+    setLogoutError("");
+    try {
+      const response = await bffFetch(`/api/admin/admin-accounts/${admin.id}/logout`, {
+        method: "POST",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.detail || data.error || "Failed to log out the account");
+      }
+    } catch (err) {
+      setLogoutError(err instanceof Error ? err.message : "Failed to log out the account");
+    } finally {
+      setLoggingOutId(null);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -112,6 +156,11 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
 
   return (
     <>
+      {logoutError && (
+        <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          {logoutError}
+        </div>
+      )}
       <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#1e1e20]">
         <table className="w-full">
           <thead>
@@ -212,12 +261,28 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                             >
                               Change Password
                             </button>
+                            <button
+                              onClick={() => handleResetPassword(admin)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-white/5 transition-colors"
+                            >
+                              Reset Password
+                            </button>
                             {admin.account_type === "demo" && (
                               <button
                                 onClick={() => handleEditModules(admin)}
                                 className="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-white/5 transition-colors"
                               >
                                 Edit Module Access
+                              </button>
+                            )}
+                            {admin.account_type === "demo" && (
+                              <button
+                                onClick={() => handleLogout(admin)}
+                                disabled={loggingOutId === admin.id}
+                                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-amber-400 hover:bg-white/5 transition-colors disabled:opacity-50"
+                              >
+                                <LogOut size={14} />
+                                {loggingOutId === admin.id ? "Logging out…" : "Logout & Clear Data"}
                               </button>
                             )}
                             {admin.ban_duration ? (
@@ -252,12 +317,30 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
           isOpen={showDeactivateModal}
           adminId={selectedAdmin.id}
           adminEmail={selectedAdmin.email}
+          // handleReactivate tags the row with ban_duration "reactivate"; without
+          // forwarding that the modal defaults to isReactivation=false and shows
+          // the *deactivate* dialog, so a suspended account could never be
+          // reactivated from the UI.
+          isReactivation={selectedAdmin.ban_duration === "reactivate"}
           onClose={() => {
             setShowDeactivateModal(false);
             setSelectedAdmin(null);
           }}
           onSuccess={() => {
             fetchAdmins();
+          }}
+        />
+      )}
+
+      {selectedAdmin && showResetModal && (
+        <ResetPasswordModal
+          isOpen={showResetModal}
+          userId={selectedAdmin.id}
+          userEmail={selectedAdmin.email}
+          accountType={selectedAdmin.account_type}
+          onClose={() => {
+            setShowResetModal(false);
+            setSelectedAdmin(null);
           }}
         />
       )}
