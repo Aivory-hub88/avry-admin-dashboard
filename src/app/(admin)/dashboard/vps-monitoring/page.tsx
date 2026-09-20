@@ -5,6 +5,7 @@ import { MetricCard } from "@/components/vps-monitoring/MetricCard";
 import { UserSelector } from "@/components/vps-monitoring/UserSelector";
 import { TimeRangeSelector } from "@/components/vps-monitoring/TimeRangeSelector";
 import { ServiceHealthTable } from "@/components/vps-monitoring/ServiceHealthTable";
+import { TencentWatchCard } from "@/components/vps-monitoring/TencentWatchCard";
 import { ResourceChart } from "@/components/vps-monitoring/ResourceChart";
 import { UserUsageTable } from "@/components/vps-monitoring/UserUsageTable";
 import {
@@ -259,6 +260,9 @@ export default function VpsMonitoringPage() {
 
           {/* Service Health */}
           <ServiceHealthTable services={services} isLoading={isLoading} />
+
+          {/* Tencent agent guard */}
+          <TencentWatchCard />
         </>
       )}
 

@@ -5,7 +5,12 @@
  * should be routed to based on keywords in the query string.
  */
 
-export type VpsPanelRequestType = "system" | "project" | "history" | "containers";
+export type VpsPanelRequestType =
+  | "system"
+  | "project"
+  | "history"
+  | "containers"
+  | "tencent-watch";
 
 /**
  * Determine which VPS Panel endpoint to target based on the query string.
