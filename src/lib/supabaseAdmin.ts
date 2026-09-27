@@ -40,4 +40,4 @@
  * reference `supabaseAdmin`. All actual Supabase calls have been removed
  * from the route handlers.
  */
-export const supabaseAdmin = null as any;
+export const supabaseAdmin: null = null;

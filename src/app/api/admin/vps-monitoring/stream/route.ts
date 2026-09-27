@@ -95,9 +95,11 @@ export async function GET(req: NextRequest) {
           if (!isClosed) {
             controller.enqueue(encoder.encode(`data: ${finalData}\n\n`));
           }
-        } catch (err: any) {
+        } catch (err) {
           if (!isClosed) {
-            controller.enqueue(encoder.encode(`data: {"error": "Failed to stream data: ${err.message}"}\n\n`));
+            // JSON.stringify: a message with quotes would otherwise break the event.
+            const message = err instanceof Error ? err.message : String(err);
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: `Failed to stream data: ${message}` })}\n\n`));
           }
         }
       }

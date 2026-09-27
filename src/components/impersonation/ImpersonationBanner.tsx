@@ -37,6 +37,17 @@ export function ImpersonationBanner() {
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const wasActiveRef = useRef(false);
 
+  const clearIntervals = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+  }, []);
+
   const fetchStatus = useCallback(async () => {
     // Don't poll if user is not authenticated
     const token = getCookie("aivory_access_token");
@@ -71,21 +82,13 @@ export function ImpersonationBanner() {
       // Silently handle poll failures — don't disrupt the admin
       // If the session was terminated server-side, next poll will redirect
     }
-  }, []);
-
-  const clearIntervals = useCallback(() => {
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-  }, []);
+  }, [clearIntervals]);
 
   // Initial fetch and polling setup
   useEffect(() => {
+    // fetchStatus is async: every state update in it happens after the
+    // network await, never synchronously inside this effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStatus();
 
     // Poll status endpoint every 15 seconds

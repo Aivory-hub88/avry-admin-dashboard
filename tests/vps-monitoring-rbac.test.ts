@@ -447,7 +447,7 @@ describe("VPS Monitoring API — User Isolation", () => {
 
 // ─── E2E API Proxy Tests ────────────────────────────────────────────────────
 
-describe("VPS Monitoring API — E2E Prometheus Proxy", () => {
+describe("VPS Monitoring API — E2E proxy (VPS Panel, Prometheus-compatible responses)", () => {
   let originalFetch: typeof global.fetch;
 
   beforeEach(() => {
@@ -460,7 +460,7 @@ describe("VPS Monitoring API — E2E Prometheus Proxy", () => {
     vi.resetModules();
   });
 
-  it("proxies instant query to Prometheus and returns result", async () => {
+  it("proxies an instant query and returns the result", async () => {
     const prometheusResponse = {
       status: "success",
       data: {
@@ -537,16 +537,20 @@ describe("VPS Monitoring API — E2E Prometheus Proxy", () => {
 
     expect(response.status).toBe(200);
 
-    // Verify the correct Prometheus endpoint was called
+    // Range queries go to the VPS Panel history endpoint (the route replaced
+    // the direct Prometheus proxy): unix start/end become ISO timestamps and
+    // the Prometheus step maps onto a stored resolution (15s -> 1m).
     const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    const fetchedUrl = fetchCall[0] as string;
-    expect(fetchedUrl).toContain("/api/v1/query_range");
-    expect(fetchedUrl).toContain("start=1717680000");
-    expect(fetchedUrl).toContain("end=1717680030");
-    expect(fetchedUrl).toContain("step=15s");
+    const fetched = new URL(fetchCall[0] as string);
+    expect(fetched.pathname).toBe("/api/monitoring/history");
+    expect(fetched.searchParams.get("start")).toBe(new Date(1717680000 * 1000).toISOString());
+    expect(fetched.searchParams.get("end")).toBe(new Date(1717680030 * 1000).toISOString());
+    expect(fetched.searchParams.get("resolution")).toBe("1m");
+    // A Prometheus-shaped body is passed through unchanged.
+    expect(await response.json()).toEqual(rangeResponse);
   });
 
-  it("returns 503 when Prometheus is unreachable", async () => {
+  it("returns 503 when the monitoring upstream is unreachable", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
       new Error("ECONNREFUSED")
     );
@@ -565,7 +569,7 @@ describe("VPS Monitoring API — E2E Prometheus Proxy", () => {
     expect(body.error).toBe("Monitoring service unavailable");
   });
 
-  it("returns 502 when Prometheus returns non-200", async () => {
+  it("returns 502 when the VPS Panel returns non-200", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       new Response("Bad Request: invalid query", {
         status: 400,
@@ -584,7 +588,7 @@ describe("VPS Monitoring API — E2E Prometheus Proxy", () => {
 
     expect(response.status).toBe(502);
     const body = await response.json();
-    expect(body.error).toContain("Prometheus returned 400");
+    expect(body.error).toContain("VPS Panel returned 400");
   });
 
   it("returns per-user metrics with proper isolation for specific user", async () => {
@@ -667,16 +671,13 @@ describe("VPS Monitoring Users API — RBAC & E2E", () => {
   });
 
   it("returns user list for valid admin token", async () => {
+    // The users route reads GET /api/v1/admin/users on the backend.
     const prometheusResponse = {
-      status: "success",
-      data: {
-        resultType: "vector",
-        result: [
-          { metric: { user_id: "user-001", user_tier: "paid" }, value: [1717680000, "1"] },
-          { metric: { user_id: "user-002", user_tier: "free" }, value: [1717680000, "1"] },
-          { metric: { user_id: "user-003", user_tier: "paid" }, value: [1717680000, "1"] },
-        ],
-      },
+      users: [
+        { userId: "user-001", accountType: "paid" },
+        { userId: "user-002", accountType: "free" },
+        { userId: "user-003", accountType: "paid" },
+      ],
     };
 
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
@@ -704,15 +705,11 @@ describe("VPS Monitoring Users API — RBAC & E2E", () => {
 
   it("returns sorted user list", async () => {
     const prometheusResponse = {
-      status: "success",
-      data: {
-        resultType: "vector",
-        result: [
-          { metric: { user_id: "zulu-user", user_tier: "free" }, value: [1717680000, "1"] },
-          { metric: { user_id: "alpha-user", user_tier: "paid" }, value: [1717680000, "1"] },
-          { metric: { user_id: "mike-user", user_tier: "paid" }, value: [1717680000, "1"] },
-        ],
-      },
+      users: [
+        { userId: "zulu-user", accountType: "free" },
+        { userId: "alpha-user", accountType: "paid" },
+        { userId: "mike-user", accountType: "paid" },
+      ],
     };
 
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
@@ -739,7 +736,7 @@ describe("VPS Monitoring Users API — RBAC & E2E", () => {
     expect(body.users[2].userId).toBe("zulu-user");
   });
 
-  it("returns 502 when Prometheus is unreachable", async () => {
+  it("returns 502 when the backend returns an error", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
       new Response("Internal Server Error", { status: 500 })
     );

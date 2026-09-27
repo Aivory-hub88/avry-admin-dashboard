@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { getCookie } from "@/lib/cookies";
 import RedactionInterface from "@/components/blog/RedactionInterface";
-import BlogPostList from "@/components/blog/BlogPostList";
+import BlogPostList, { type BlogPostListItem } from "@/components/blog/BlogPostList";
 import BlogPostEditor, { BlogPostData, ContentBlock } from "@/components/blog/BlogPostEditor";
 
 type BlogTab = "manage" | "create";
@@ -25,11 +25,14 @@ interface BlogPost {
 const BLOG_SERVICE_URL =
   process.env.NEXT_PUBLIC_BLOG_SERVICE_URL ?? "http://localhost:8089";
 
+/** The post shape RedactionInterface takes (its type isn't exported). */
+type RedactablePost = React.ComponentProps<typeof RedactionInterface>["post"];
+
 export default function BlogAdminPanel() {
   const [activeTab, setActiveTab] = useState<BlogTab>("manage");
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(false);
-  const [redactingPost, setRedactingPost] = useState<any>(null);
+  const [redactingPost, setRedactingPost] = useState<RedactablePost | null>(null);
   const [editingPost, setEditingPost] = useState<BlogPostData | null>(null);
 
   const fetchPosts = useCallback(async () => {
@@ -130,27 +133,28 @@ export default function BlogAdminPanel() {
                   loading={loading}
                   onEdit={(post) => {
                     // Handle both body formats: array or { blocks: [...] }
-                    const rawPost = post as any;
+                    const rawPost: BlogPostListItem = post;
                     let bodyData: { blocks: ContentBlock[] };
-                    if (Array.isArray(rawPost.body)) {
-                      bodyData = { blocks: rawPost.body as ContentBlock[] };
-                    } else if (rawPost.body?.blocks) {
-                      bodyData = rawPost.body as { blocks: ContentBlock[] };
+                    const rawBody = rawPost.body as ContentBlock[] | { blocks?: ContentBlock[] } | undefined;
+                    if (Array.isArray(rawBody)) {
+                      bodyData = { blocks: rawBody };
+                    } else if (rawBody?.blocks) {
+                      bodyData = { blocks: rawBody.blocks };
                     } else {
                       bodyData = { blocks: [] };
                     }
                     const postData: BlogPostData = {
                       id: rawPost.id,
                       title: rawPost.title,
-                      author_name: rawPost.author_name ?? "",
-                      excerpt: rawPost.excerpt ?? "",
-                      thumbnail_url: rawPost.thumbnail_url ?? "",
+                      author_name: String(rawPost.author_name ?? ""),
+                      excerpt: String(rawPost.excerpt ?? ""),
+                      thumbnail_url: String(rawPost.thumbnail_url ?? ""),
                       body: bodyData,
                     };
                     setEditingPost(postData);
                     setActiveTab("create");
                   }}
-                  onRedact={(post) => setRedactingPost(post as any)}
+                  onRedact={(post) => setRedactingPost(post as unknown as RedactablePost)}
                   onPostUpdated={fetchPosts}
                 />
               </div>

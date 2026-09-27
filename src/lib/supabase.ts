@@ -44,4 +44,4 @@
 /**
  * Empty placeholder export to prevent import errors.
  */
-export const supabase = null as any;
+export const supabase: null = null;

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error) {
     console.error("Trap hits API error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
