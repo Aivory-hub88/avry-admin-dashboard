@@ -4,7 +4,8 @@
  * Property 2: Non-success upstream responses yield error with empty users
  * Validates: Requirements 1.3
  *
- * For any non-2xx HTTP status code returned by the VPS Panel Users API,
+ * For any non-2xx HTTP status code returned by the backend users API
+ * (GET /api/v1/admin/users; the route moved there from the VPS Panel),
  * the Users Endpoint SHALL return a 502 response containing an empty `users`
  * array and an `error` string field.
  */

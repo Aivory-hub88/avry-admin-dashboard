@@ -4,10 +4,10 @@
  * Property 1: Users endpoint response preserves upstream data
  * Validates: Requirements 1.2
  *
- * For any valid VPS Panel Users API response containing a list of user objects
- * with `userId` and `tier` fields, the Users Endpoint SHALL return the same set
- * of users with identical `userId` and `tier` values, sorted alphabetically
- * by `userId`.
+ * For any backend users response (GET /api/v1/admin/users) containing user
+ * objects with `userId` and `accountType`, the Users Endpoint SHALL return the
+ * same set of users with identical `userId` and `tier` (= accountType) values,
+ * sorted alphabetically by `userId`.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -49,6 +49,13 @@ vi.mock("next/server", () => {
     }
     cookies = {
       get: (name: string) => this.cookieMap.get(name),
+    };
+    // getAccessToken reads the raw Cookie header (duplicate-cookie tolerant).
+    headers = {
+      get: (name: string) =>
+        name.toLowerCase() === "cookie"
+          ? [...this.cookieMap].map(([k, v]) => `${k}=${v.value}`).join("; ") || null
+          : null,
     };
     setCookie(name: string, value: string) {
       this.cookieMap.set(name, { value });
@@ -96,13 +103,8 @@ function createAdminRequest(): InstanceType<typeof NextRequest> {
 
 // ─── Setup / Teardown ────────────────────────────────────────────────────────
 
-beforeEach(() => {
-  process.env.VPS_PANEL_API_TOKEN = "test-vps-panel-token";
-});
-
 afterEach(() => {
   vi.restoreAllMocks();
-  delete process.env.VPS_PANEL_API_TOKEN;
 });
 
 // ─── Property Tests ──────────────────────────────────────────────────────────
@@ -111,13 +113,11 @@ describe("Property 1: Users endpoint response preserves upstream data", () => {
   it("returns the same set of users with identical values, sorted alphabetically by userId", async () => {
     await fc.assert(
       fc.asyncProperty(usersArrayArb, async (generatedUsers) => {
-        // Mock global fetch to return VPS Panel response with generated data
+        // Mock global fetch to return the backend users response
         const mockFetch = vi.fn().mockResolvedValue({
           ok: true,
           json: async () => ({
-            success: true,
-            data: generatedUsers,
-            timestamp: new Date().toISOString(),
+            users: generatedUsers.map((u) => ({ userId: u.userId, accountType: u.tier })),
           }),
         });
         vi.stubGlobal("fetch", mockFetch);

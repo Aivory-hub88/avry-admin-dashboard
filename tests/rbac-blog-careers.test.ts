@@ -17,6 +17,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
+// lib/bff reads each service URL from its own env var when the module loads
+// (it does not go through lib/services), so set them before any import. The
+// tests re-import bff after vi.resetModules(), which picks these up.
+process.env.BLOG_SERVICE_URL = "http://localhost:8089";
+process.env.CAREERS_SERVICE_URL = "http://localhost:8090";
+
 // Mock the services module
 vi.mock("@/lib/services", () => ({
   SERVICE_URLS: {
@@ -48,10 +54,10 @@ vi.mock("@/lib/services", () => ({
 
 describe("Admin Dashboard BFF — Auth Layer", () => {
   describe("getAccessToken", () => {
-    it("returns undefined when no cookie is present", async () => {
+    it("returns null when no cookie is present", async () => {
       const { getAccessToken } = await import("@/lib/bff");
       const request = createMockRequest({});
-      expect(getAccessToken(request)).toBeUndefined();
+      expect(getAccessToken(request)).toBeNull();
     });
 
     it("returns the token value from aivory_access_token cookie", async () => {
@@ -88,7 +94,7 @@ describe("Admin Dashboard BFF — Blog RBAC", () => {
     const token = getAccessToken(request);
 
     // Simulates what the route handler does
-    expect(token).toBeUndefined();
+    expect(token).toBeNull();
     const response = unauthorized();
     expect(response.status).toBe(401);
   });
@@ -207,7 +213,7 @@ describe("Admin Dashboard BFF — Careers RBAC", () => {
     const request = createMockRequest({});
     const token = getAccessToken(request);
 
-    expect(token).toBeUndefined();
+    expect(token).toBeNull();
     const response = unauthorized();
     expect(response.status).toBe(401);
   });
@@ -624,12 +630,22 @@ describe("Admin Dashboard — Careers PII Isolation", () => {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function createMockRequest(opts: { cookies?: Record<string, string> }) {
+  // getAccessToken reads the raw Cookie header (it tolerates duplicate
+  // aivory_access_token cookies) and the Authorization header, so the mock
+  // carries both views of the same cookies.
+  const cookieHeader = Object.entries(opts.cookies ?? {})
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join("; ");
   return {
     cookies: {
       get: (name: string) => {
         const value = opts.cookies?.[name];
         return value ? { value } : undefined;
       },
+    },
+    headers: {
+      get: (name: string) =>
+        name.toLowerCase() === "cookie" && cookieHeader ? cookieHeader : null,
     },
   } as unknown as import("next/server").NextRequest;
 }
