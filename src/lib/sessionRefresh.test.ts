@@ -148,4 +148,18 @@ describe("middleware sends expired sessions to sign-in with the page to return t
     expect(location.pathname).toMatch(/\/signin$/);
     expect(location.searchParams.get("next")).toBe("/users");
   });
+
+  // Regression: the access-token cookie's max-age simply running out (the
+  // common case — it happens every hour) makes the browser stop sending the
+  // cookie at all, which is a DIFFERENT code path from "cookie present but
+  // expired". That path used to redirect with no `next` at all, so a silent
+  // resume always landed on the dashboard root instead of the page the
+  // admin was on.
+  it("adds next= when the access-token cookie is missing entirely (not just expired)", () => {
+    const req = new NextRequest("https://aivory.id/users");
+    const res = middleware(req);
+    const location = new URL(res.headers.get("location")!);
+    expect(location.pathname).toMatch(/\/signin$/);
+    expect(location.searchParams.get("next")).toBe("/users");
+  });
 });
