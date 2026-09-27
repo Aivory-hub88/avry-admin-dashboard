@@ -153,6 +153,72 @@ export async function proxyToService(
   }
 }
 
+/**
+ * Proxy a download (CSV, PDF) straight through to the caller.
+ *
+ * `proxyToService` parses the body as JSON, which would corrupt a file, so this
+ * streams the response untouched and forwards the headers that make a browser
+ * save it — notably Content-Disposition, which carries the server's timestamped
+ * filename.
+ */
+export async function proxyDownload(options: {
+  service: string;
+  path: string;
+  token: string;
+  query?: Record<string, string>;
+}): Promise<NextResponse> {
+  const { service, path, token, query } = options;
+
+  const baseUrl = SERVICE_URLS[service] || DEFAULT_BACKEND;
+  if (!baseUrl) {
+    return NextResponse.json({ error: `${service} service is not configured` }, { status: 503 });
+  }
+
+  let url = `${baseUrl}${path}`;
+  if (query && Object.keys(query).length > 0) {
+    url += `?${new URLSearchParams(query).toString()}`;
+  }
+
+  try {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: `Export failed (${res.status})` },
+        { status: res.status === 401 ? 401 : 502 }
+      );
+    }
+    return new NextResponse(res.body, {
+      status: 200,
+      headers: {
+        "Content-Type": res.headers.get("content-type") ?? "text/csv; charset=utf-8",
+        "Content-Disposition":
+          res.headers.get("content-disposition") ?? 'attachment; filename="export.csv"',
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: `Could not reach ${service} service` }, { status: 502 });
+  }
+}
+
+/**
+ * Collect a known set of query params from an incoming request.
+ *
+ * Whitelisted so an arbitrary client-supplied param can't be forwarded into the
+ * upstream service's query string.
+ */
+export function pickQuery(
+  request: NextRequest,
+  keys: readonly string[]
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of keys) {
+    const value = request.nextUrl.searchParams.get(key);
+    if (value !== null && value !== "") out[key] = value;
+  }
+  return out;
+}
+
 // ─── Client-side helper ──────────────────────────────────────────────────────
 
 export const BASE_PATH = "/admin";

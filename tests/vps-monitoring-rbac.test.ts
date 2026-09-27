@@ -915,3 +915,88 @@ describe("VPS Monitoring — Admin Consistency", () => {
     expect(adminResponse.status).toBe(superadminResponse.status);
   });
 });
+
+// ─── Tencent Watch ─────────────────────────────────────────────────────────
+
+describe("VPS Monitoring API — Tencent Watch", () => {
+  let originalFetch: typeof global.fetch;
+
+  beforeEach(() => {
+    originalFetch = global.fetch;
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.resetModules();
+  });
+
+  const fixture = {
+    ts: "2026-09-20T04:46:00Z",
+    auditd_rules: 17,
+    agents: { tat_agent: 1, sgagent: 1, barad_agent: 3, ydservice: 1, ydlive: 1 },
+    last_run: {
+      crit_hits: 0,
+      canary_hits: 0,
+      tat_children: 0,
+      egress_tat_delta_b: 100,
+      egress_yd_delta_b: 200,
+      egress_tat_total_b: 300,
+      egress_yd_total_b: 400,
+    },
+    known_dests: ["169.254.0.138:8186"],
+    log_tail: [],
+  };
+
+  it("returns 401 for tencent-watch without auth", async () => {
+    const { GET } = await import("@/app/api/admin/vps-monitoring/route");
+    const response = await GET(createMonitoringRequest({ type: "tencent-watch" }));
+    expect(response.status).toBe(401);
+  });
+
+  it("proxies tencent-watch snapshot and unwraps the panel envelope", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ success: true, data: fixture, timestamp: fixture.ts }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+
+    const { GET } = await import("@/app/api/admin/vps-monitoring/route");
+    const response = await GET(
+      createMonitoringRequest({ token: adminToken(), type: "tencent-watch" })
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.auditd_rules).toBe(17);
+    expect(body.agents.barad_agent).toBe(3);
+    expect(body.known_dests).toContain("169.254.0.138:8186");
+
+    const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(String(fetchCall[0])).toContain("/api/monitoring/tencent-watch");
+  });
+
+  it("returns 503 when the panel snapshot is unavailable", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          success: false,
+          error: "tencent-watch agent has not reported yet",
+          code: "TENCENT_WATCH_UNAVAILABLE",
+          timestamp: fixture.ts,
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } }
+      )
+    );
+
+    const { GET } = await import("@/app/api/admin/vps-monitoring/route");
+    const response = await GET(
+      createMonitoringRequest({ token: adminToken(), type: "tencent-watch" })
+    );
+
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.error).toBe("Monitoring service unavailable");
+  });
+});

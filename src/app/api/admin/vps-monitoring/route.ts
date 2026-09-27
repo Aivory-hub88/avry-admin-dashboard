@@ -82,8 +82,30 @@ export interface VpsPanelSystemMetrics {
   };
 }
 
-interface VpsPanelHistoryPoint {
-  timestamp: string;
+export interface TencentWatchStatus {
+  ts: string;
+  auditd_rules: number;
+  agents: {
+    tat_agent: number;
+    sgagent: number;
+    barad_agent: number;
+    ydservice: number;
+    ydlive: number;
+  };
+  last_run: {
+    crit_hits: number;
+    canary_hits: number;
+    tat_children: number;
+    egress_tat_delta_b: number;
+    egress_yd_delta_b: number;
+    egress_tat_total_b: number;
+    egress_yd_total_b: number;
+  };
+  known_dests: string[];
+  log_tail: string[];
+}
+
+interface VpsPanelHistoryPoint {  timestamp: string;
   cpu: { usagePercent: number };
   memory: { usedBytes: number; totalBytes: number };
   disk: { usedBytes: number; totalBytes: number };
@@ -154,7 +176,13 @@ import { determineVpsPanelTarget, type VpsPanelRequestType } from "./query-routi
 type RequestMode = "vps-panel" | "legacy-prometheus";
 
 function getRequestMode(type: string | null): RequestMode {
-  if (type === "system" || type === "project" || type === "history" || type === "containers") {
+  if (
+    type === "system" ||
+    type === "project" ||
+    type === "history" ||
+    type === "containers" ||
+    type === "tencent-watch"
+  ) {
     return "vps-panel";
   }
   return "legacy-prometheus";
@@ -534,6 +562,27 @@ export async function handleVpsPanelDirect(
           }
           const transformed = systemMetricsToPrometheus(envelope.data, params.query || "");
           return NextResponse.json(transformed);
+        }
+
+        // Unknown format — return as-is
+        return NextResponse.json(body);
+      }
+
+      case "tencent-watch": {
+        const res = await fetchVpsPanel("/api/monitoring/tencent-watch");
+        if (!res.ok) return handleUpstreamError(res);
+        const body = await res.json();
+
+        // VPS Panel envelope format — pass snapshot data through as-is
+        if (isVpsPanelEnvelope(body)) {
+          const envelope = body as VpsPanelEnvelope<TencentWatchStatus>;
+          if (!envelope.success) {
+            return NextResponse.json(
+              { error: envelope.error || "VPS Panel error", code: envelope.code },
+              { status: 502 }
+            );
+          }
+          return NextResponse.json(envelope.data);
         }
 
         // Unknown format — return as-is

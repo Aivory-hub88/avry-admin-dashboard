@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 import { bffFetch } from "@/lib/bff";
 
@@ -21,7 +21,19 @@ export function DeactivateModal({
   onClose,
   onSuccess,
 }: DeactivateModalProps) {
-  const [banDuration, setBanDuration] = useState<string>("24h");
+  // `isReactivation` was previously declared and never read: the reactivate
+  // branch keys off banDuration, which started at "24h" and had no radio option
+  // for "reactivate", so that path was unreachable and clicking Reactivate
+  // showed the deactivate dialog instead.
+  const [banDuration, setBanDuration] = useState<string>(
+    isReactivation ? "reactivate" : "24h"
+  );
+
+  // The parent can keep this modal mounted between the two flows, so state must
+  // follow a mode change rather than only the initial mount.
+  useEffect(() => {
+    setBanDuration(isReactivation ? "reactivate" : "24h");
+  }, [isReactivation]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -95,39 +107,39 @@ export function DeactivateModal({
     setError("");
     setSuccess(false);
     setLoading(false);
-    setBanDuration("24h");
+    setBanDuration(isReactivation ? "reactivate" : "24h");
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+      <div className="absolute inset-0 bg-black/60" onClick={handleClose} />
+      <div className="relative w-full max-w-md rounded-xl border border-white/10 bg-[#1e1e20] p-6 shadow-2xl">
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          className="absolute top-4 right-4 text-gray-400 transition-colors hover:text-white"
         >
           <X size={20} />
         </button>
 
         {success ? (
           <div className="text-center py-8">
-            <div className="text-green-600 mb-2">✓ Admin updated successfully!</div>
+            <div className="mb-2 font-medium text-[#b7cba6]">✓ Admin updated successfully!</div>
           </div>
         ) : (
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-orange-100 rounded-full">
-                <AlertTriangle className="text-orange-600" size={24} />
+              <div className="rounded-full bg-amber-500/15 p-2">
+                <AlertTriangle className="text-amber-400" size={24} />
               </div>
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-xl font-semibold text-white">
                 {banDuration === "reactivate"
                   ? "Reactivate Admin"
                   : "Deactivate Admin"}
               </h2>
             </div>
 
-            <p className="text-gray-600 mb-4">
+            <p className="mb-4 text-sm text-gray-400">
               {banDuration === "reactivate"
                 ? `Are you sure you want to reactivate ${adminEmail}?`
                 : `Are you sure you want to deactivate ${adminEmail}?`}
@@ -136,7 +148,7 @@ export function DeactivateModal({
             <form onSubmit={handleSubmit} className="space-y-4">
               {banDuration !== "reactivate" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-200">
                     Deactivation Duration
                   </label>
                   <div className="space-y-2">
@@ -148,7 +160,7 @@ export function DeactivateModal({
                     ].map((option) => (
                       <label
                         key={option.value}
-                        className="flex items-center gap-2 p-2 border rounded-md cursor-pointer hover:bg-gray-50"
+                        className="flex cursor-pointer items-center gap-2 rounded-md border border-white/10 bg-[#2a2a27] p-2 text-gray-200 transition-colors hover:bg-white/5"
                       >
                         <input
                           type="radio"
@@ -156,7 +168,7 @@ export function DeactivateModal({
                           value={option.value}
                           checked={banDuration === option.value}
                           onChange={(e) => setBanDuration(e.target.value)}
-                          className="text-blue-600 focus:ring-blue-500"
+                          className="accent-[#b7cba6] focus:ring-[#b7cba6]/50"
                         />
                         <span>{option.label}</span>
                       </label>
@@ -166,7 +178,7 @@ export function DeactivateModal({
               )}
 
               {error && (
-                <div className="text-red-600 text-sm bg-red-50 p-2 rounded">
+                <div className="text-red-400 text-sm bg-red-500/10 p-2 rounded">
                   {error}
                 </div>
               )}
@@ -175,7 +187,7 @@ export function DeactivateModal({
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="flex-1 rounded-md border border-white/15 px-4 py-2 text-gray-200 transition-colors hover:bg-white/5"
                 >
                   Cancel
                 </button>
@@ -184,7 +196,7 @@ export function DeactivateModal({
                     type="button"
                     onClick={handleReactivate}
                     disabled={loading}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+                    className="flex-1 rounded-md bg-[#b7cba6] px-4 py-2 font-medium text-[#14140f] transition-colors hover:bg-[#c8dab8] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loading ? "Updating..." : "Reactivate"}
                   </button>
@@ -192,7 +204,7 @@ export function DeactivateModal({
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed"
+                    className="flex-1 rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {loading ? "Deactivating..." : "Deactivate"}
                   </button>
