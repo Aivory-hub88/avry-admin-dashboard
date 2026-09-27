@@ -14,6 +14,40 @@ function resolveAccountType(payload: JwtPayload): string | undefined {
   return payload.account_type ?? payload.user_metadata?.account_type;
 }
 
+/**
+ * Redirect to sign-in with `next` always set, whichever of the two paths
+ * below sent us here. The common case — the access-token cookie's max-age
+ * simply expiring after an hour — means the cookie is entirely ABSENT
+ * (`tokens.length === 0`), not present-but-invalid, so this path needs the
+ * same `next` handling as the "cookie present but stale" path or a silent
+ * resume always lands on the dashboard root instead of the page the admin
+ * was on.
+ */
+function toSignin(
+  request: NextRequest,
+  pathname: string,
+  error?: "session_refresh_required" | "insufficient_permissions"
+): NextResponse {
+  const signinUrl = request.nextUrl.clone();
+  signinUrl.pathname = "/signin";
+  signinUrl.search = "";
+  // Sign-in tries a silent refresh first and comes back to this page if it
+  // works, so every visitor here (not just an expired-token one) needs it.
+  signinUrl.searchParams.set("next", pathname);
+  if (error) signinUrl.searchParams.set("error", error);
+  const res = NextResponse.redirect(signinUrl);
+  // Expire both cookie variants so stale duplicates can't keep bouncing us.
+  res.headers.append(
+    "Set-Cookie",
+    "aivory_access_token=; Path=/; Max-Age=0; SameSite=Lax"
+  );
+  res.headers.append(
+    "Set-Cookie",
+    "aivory_access_token=; Path=/; Domain=.aivory.id; Max-Age=0; SameSite=Lax"
+  );
+  return res;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -55,9 +89,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (tokens.length === 0) {
-    const signinUrl = request.nextUrl.clone();
-    signinUrl.pathname = "/signin";
-    return NextResponse.redirect(signinUrl);
+    return toSignin(request, pathname);
   }
 
   let sawLegacy = false;
@@ -82,26 +114,10 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  const signinUrl = request.nextUrl.clone();
-  signinUrl.pathname = "/signin";
-  signinUrl.search = "";
-  // Only an expired token reaches here without a flag; the sign-in page
-  // tries a silent refresh first and comes back to this page if it works.
-  signinUrl.searchParams.set("next", pathname);
-  if (sawLegacy) {
-    signinUrl.searchParams.set("error", "session_refresh_required");
-  } else if (sawInsufficient) {
-    signinUrl.searchParams.set("error", "insufficient_permissions");
-  }
-  const res = NextResponse.redirect(signinUrl);
-  // Expire both cookie variants so stale duplicates can't keep bouncing us.
-  res.headers.append(
-    "Set-Cookie",
-    "aivory_access_token=; Path=/; Max-Age=0; SameSite=Lax"
-  );
-  res.headers.append(
-    "Set-Cookie",
-    "aivory_access_token=; Path=/; Domain=.aivory.id; Max-Age=0; SameSite=Lax"
-  );
-  return res;
+  const error = sawLegacy
+    ? "session_refresh_required"
+    : sawInsufficient
+      ? "insufficient_permissions"
+      : undefined;
+  return toSignin(request, pathname, error);
 }
