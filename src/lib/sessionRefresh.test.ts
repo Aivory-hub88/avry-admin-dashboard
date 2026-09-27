@@ -13,7 +13,7 @@ import { NextRequest } from "next/server";
 function stubBrowser(cookies: Record<string, string> = {}, storage: Record<string, string> = {}) {
   const jar = new Map(Object.entries(cookies));
   const writes: string[] = [];
-  (globalThis as any).document = {
+  (globalThis as unknown as Record<string, unknown>).document = {
     get cookie() {
       return [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
     },
@@ -27,7 +27,7 @@ function stubBrowser(cookies: Record<string, string> = {}, storage: Record<strin
     },
   };
   const ls = new Map(Object.entries(storage));
-  (globalThis as any).localStorage = {
+  (globalThis as unknown as Record<string, unknown>).localStorage = {
     getItem: (k: string) => ls.get(k) ?? null,
     setItem: (k: string, v: string) => void ls.set(k, String(v)),
     removeItem: (k: string) => void ls.delete(k),
@@ -43,8 +43,8 @@ function jwt(expSecondsFromNow: number, extra: Record<string, unknown> = {}) {
 }
 
 afterEach(() => {
-  delete (globalThis as any).document;
-  delete (globalThis as any).localStorage;
+  delete (globalThis as unknown as Record<string, unknown>).document;
+  delete (globalThis as unknown as Record<string, unknown>).localStorage;
   vi.unstubAllGlobals();
 });
 

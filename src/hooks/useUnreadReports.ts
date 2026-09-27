@@ -13,10 +13,8 @@ export function useUnreadReports(): UseUnreadReportsResult {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (role !== "superadmin") {
-      setCount(0);
-      return;
-    }
+    // Non-superadmins never poll; their count is derived as 0 below.
+    if (role !== "superadmin") return;
 
     async function fetchUnreadCount() {
       try {
@@ -43,5 +41,5 @@ export function useUnreadReports(): UseUnreadReportsResult {
     };
   }, [role]);
 
-  return { count };
+  return { count: role === "superadmin" ? count : 0 };
 }

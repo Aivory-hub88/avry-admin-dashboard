@@ -23,6 +23,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     const savedTheme = localStorage.getItem("theme") as Theme | null;
     const initialTheme = savedTheme || "light"; // Default to light theme
 
+    // Read after mount on purpose: reading localStorage during render would
+    // make the server and first client render disagree (hydration mismatch).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(initialTheme);
     setIsInitialized(true);
   }, []);

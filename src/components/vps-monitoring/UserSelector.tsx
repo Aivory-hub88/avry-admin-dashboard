@@ -13,9 +13,8 @@ export function UserSelector({ selectedUserId, onUserChange }: UserSelectorProps
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Runs once on mount; the initial state is already loading / no error.
     let cancelled = false;
-    setIsLoading(true);
-    setError(null);
 
     fetchMonitoringUsers()
       .then((data) => {

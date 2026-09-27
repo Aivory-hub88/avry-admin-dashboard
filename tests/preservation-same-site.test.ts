@@ -88,7 +88,7 @@ function parseCookies(cookieString: string): Record<string, string> {
 function simulateSameSiteNavigation(
   sourceDomain: string,
   targetDomain: string,
-  cookieFunction: (name: string, value: string, options?: any) => string
+  cookieFunction: (name: string, value: string, options?: Record<string, unknown>) => string
 ): Record<string, string> {
   // Simulate setting cookie on source domain
   const cookie = cookieFunction(

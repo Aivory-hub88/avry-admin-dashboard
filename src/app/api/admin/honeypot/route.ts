@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error) {
     console.error("Honeypot API Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

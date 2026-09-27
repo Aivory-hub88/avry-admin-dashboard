@@ -6,9 +6,51 @@ import DataTable, { Column } from "@/components/shared/DataTable";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingSkeleton from "@/components/shared/LoadingSkeleton";
 
+// Shapes of GET /api/admin/honeypot (tarpit + cowrie stats) and
+// GET /api/admin/trap-hits, as this page reads them.
+type TarpitConnection = {
+  ip: string;
+  duration: number;
+  bytes: number;
+  start: string;
+};
+type CowrieLogin = {
+  ip: string;
+  username: string;
+  password: string;
+  timestamp: string;
+};
+type CowrieCommand = {
+  ip: string;
+  command: string;
+  timestamp: string;
+};
+type HoneypotStats = {
+  timestamp?: string;
+  tarpit?: {
+    total_connections?: number;
+    total_time_wasted?: number;
+    recent_connections?: TarpitConnection[];
+  };
+  cowrie?: {
+    login_attempts?: number;
+    popular_usernames?: [string, number][];
+    popular_passwords?: [string, number][];
+    recent_logins?: CowrieLogin[];
+    commands?: CowrieCommand[];
+  };
+};
+type TrapHit = {
+  hit_id?: string | number;
+  ip: string;
+  user_agent: string;
+  path: string;
+  created_at: string;
+};
+
 export default function SecurityHoneypotPage() {
-  const [data, setData] = useState<any>(null);
-  const [trapHits, setTrapHits] = useState<any[]>([]);
+  const [data, setData] = useState<HoneypotStats | null>(null);
+  const [trapHits, setTrapHits] = useState<TrapHit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,8 +65,8 @@ export default function SecurityHoneypotPage() {
       }
       const json = await res.json();
       setData(json);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsLoading(false);
     }
@@ -59,13 +101,13 @@ export default function SecurityHoneypotPage() {
     return <ErrorState message={error} onRetry={fetchStats} />;
   }
 
-  const { tarpit, cowrie } = data || {};
+  const { tarpit, cowrie } = data ?? {};
 
   const recentTarpitConnections = tarpit?.recent_connections || [];
-  const popularUsernames = cowrie?.popular_usernames?.map(([user, count]: any, i: number) => ({ id: i, user, count })) || [];
-  const popularPasswords = cowrie?.popular_passwords?.map(([pass, count]: any, i: number) => ({ id: i, pass, count })) || [];
-  const recentLogins = cowrie?.recent_logins?.map((l: any, i: number) => ({ ...l, id: i })) || [];
-  const recentCommands = cowrie?.commands?.map((c: any, i: number) => ({ ...c, id: i })) || [];
+  const popularUsernames = cowrie?.popular_usernames?.map(([user, count], i) => ({ id: i, user, count })) || [];
+  const popularPasswords = cowrie?.popular_passwords?.map(([pass, count], i) => ({ id: i, pass, count })) || [];
+  const recentLogins = cowrie?.recent_logins?.map((l, i) => ({ ...l, id: i })) || [];
+  const recentCommands = cowrie?.commands?.map((c, i) => ({ ...c, id: i })) || [];
 
   return (
     <div className="space-y-6">
@@ -117,9 +159,9 @@ export default function SecurityHoneypotPage() {
               data={recentTarpitConnections}
               columns={[
                 { key: "ip", header: "Attacker IP" },
-                { key: "duration", header: "Wasted (s)", render: (row: any) => `${row.duration}s` },
+                { key: "duration", header: "Wasted (s)", render: (row: TarpitConnection) => `${row.duration}s` },
                 { key: "bytes", header: "Bytes Sent" },
-                { key: "start", header: "Time", render: (row: any) => new Date(row.start).toLocaleTimeString() }
+                { key: "start", header: "Time", render: (row: TarpitConnection) => new Date(row.start).toLocaleTimeString() }
               ]}
               isLoading={isLoading}
             />
@@ -169,8 +211,8 @@ export default function SecurityHoneypotPage() {
               data={recentCommands}
               columns={[
                 { key: "ip", header: "IP", width: "120px" },
-                { key: "command", header: "Command", render: (row: any) => <code className="text-xs text-green-400">{row.command}</code> },
-                { key: "timestamp", header: "Time", render: (row: any) => new Date(row.timestamp).toLocaleTimeString() }
+                { key: "command", header: "Command", render: (row: CowrieCommand) => <code className="text-xs text-green-400">{row.command}</code> },
+                { key: "timestamp", header: "Time", render: (row: CowrieCommand) => new Date(row.timestamp).toLocaleTimeString() }
               ]}
               isLoading={isLoading}
             />
@@ -187,8 +229,8 @@ export default function SecurityHoneypotPage() {
               data={recentLogins}
               columns={[
                 { key: "ip", header: "IP" },
-                { key: "credentials", header: "Creds", render: (row: any) => `${row.username}/${row.password}` },
-                { key: "timestamp", header: "Time", render: (row: any) => new Date(row.timestamp).toLocaleTimeString() }
+                { key: "credentials", header: "Creds", render: (row: CowrieLogin) => `${row.username}/${row.password}` },
+                { key: "timestamp", header: "Time", render: (row: CowrieLogin) => new Date(row.timestamp).toLocaleTimeString() }
               ]}
               isLoading={isLoading}
             />
@@ -203,12 +245,12 @@ export default function SecurityHoneypotPage() {
         </div>
         <div className="p-5">
           <DataTable
-            data={trapHits.map((h: any, i: number) => ({ ...h, id: h.hit_id || i }))}
+            data={trapHits.map((h, i) => ({ ...h, id: h.hit_id || i }))}
             columns={[
               { key: "ip", header: "IP" },
               { key: "user_agent", header: "User-Agent" },
               { key: "path", header: "Path" },
-              { key: "created_at", header: "Time", render: (row: any) => new Date(row.created_at).toLocaleString() },
+              { key: "created_at", header: "Time", render: (row: TrapHit) => new Date(row.created_at).toLocaleString() },
             ]}
             isLoading={isLoading}
           />

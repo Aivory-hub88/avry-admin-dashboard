@@ -101,7 +101,7 @@ export default function VpsMonitoringPage() {
           if (data.error) return;
           // Health data returns an array of containers from vps-panel
           if (Array.isArray(data)) {
-            setServices(data.map((s: any) => ({
+            setServices(data.map((s: { name: string; status: string }) => ({
               name: s.name.replace("avry-", ""),
               status: s.status === "running" ? "up" : s.status === "exited" ? "down" : "unknown",
             })));
