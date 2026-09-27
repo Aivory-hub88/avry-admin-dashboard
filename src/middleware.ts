@@ -80,6 +80,10 @@ export function middleware(request: NextRequest) {
 
   const signinUrl = request.nextUrl.clone();
   signinUrl.pathname = "/signin";
+  signinUrl.search = "";
+  // Only an expired token reaches here without a flag; the sign-in page
+  // tries a silent refresh first and comes back to this page if it works.
+  signinUrl.searchParams.set("next", pathname);
   if (sawLegacy) {
     signinUrl.searchParams.set("error", "session_refresh_required");
   } else if (sawInsufficient) {

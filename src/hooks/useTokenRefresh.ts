@@ -1,47 +1,29 @@
 "use client";
 import { useEffect } from "react";
-import { getCookie, setCookie, deleteCookie } from "@/lib/cookies";
+import { getCookie, deleteCookie } from "@/lib/cookies";
 import { decodeJwt, isTokenExpiringSoon } from "@/lib/jwt";
-import { bffFetch } from "@/lib/bff";
+import { refreshSession, ACCESS_COOKIE, REFRESH_COOKIE } from "@/lib/sessionRefresh";
 
 export function useTokenRefresh() {
   useEffect(() => {
     const checkAndRefresh = async () => {
-      const token = getCookie("aivory_access_token");
-      if (!token) return;
-
-      try {
-        const payload = decodeJwt(token);
-        if (isTokenExpiringSoon(payload, 60)) {
-          const refreshToken = getCookie("aivory_refresh_token");
-          if (!refreshToken) {
-            deleteCookie("aivory_access_token");
-            window.location.href = "/admin/signin";
-            return;
-          }
-
-          const res = await bffFetch("/api/auth/refresh", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refresh_token: refreshToken }),
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            setCookie("aivory_access_token", data.access_token, {
-              maxAge: 3600,
-              path: "/",
-              sameSite: "Lax",
-            });
-          } else {
-            deleteCookie("aivory_access_token");
-            deleteCookie("aivory_refresh_token");
-            window.location.href = "/admin/signin";
-          }
+      const token = getCookie(ACCESS_COOKIE);
+      if (token) {
+        try {
+          if (!isTokenExpiringSoon(decodeJwt(token), 60)) return;
+        } catch {
+          // undecodable cookie: fall through and try to replace it
         }
-      } catch {
-        // ignore decode errors
       }
+      // Missing, expiring or broken access cookie: refresh from whichever
+      // refresh token this session has (see lib/sessionRefresh).
+      const result = await refreshSession();
+      if (result === "rejected" || (result === "no-refresh-token" && !token)) {
+        deleteCookie(ACCESS_COOKIE);
+        deleteCookie(REFRESH_COOKIE);
+        window.location.href = "/admin/signin";
+      }
+      // "unavailable": keep the current session and try again next tick.
     };
 
     checkAndRefresh();
