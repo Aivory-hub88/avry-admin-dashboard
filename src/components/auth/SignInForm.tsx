@@ -6,6 +6,7 @@ import { deleteCookie } from "@/lib/cookies";
 import { refreshSession, storeSession, safeNextPath } from "@/lib/sessionRefresh";
 import { bffFetch } from "@/lib/bff";
 import { decodeJwt } from "@/lib/jwt";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, Suspense } from "react";
 
@@ -177,6 +178,14 @@ function SignInFormInner() {
                     )}
                   </span>
                 </div>
+              </div>
+              <div className="flex justify-end -mt-3">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-brand-500 hover:text-brand-600"
+                >
+                  Forgot password?
+                </Link>
               </div>
               <div>
                 <Button className="w-full" size="sm" disabled={isLoading}>

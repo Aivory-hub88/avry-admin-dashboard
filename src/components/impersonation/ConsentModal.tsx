@@ -93,47 +93,47 @@ export function ConsentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={handleCancel} />
-      <div className="relative bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-md p-6">
+      <div className="relative w-full max-w-md rounded-xl border border-white/10 bg-[#1e1e20] p-6 shadow-2xl">
         <button
           onClick={handleCancel}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          className="absolute top-4 right-4 text-gray-400 transition-colors hover:text-white"
           aria-label="Close modal"
         >
           <X size={20} />
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-            <AlertTriangle className="text-orange-600" size={24} />
+          <div className="rounded-full bg-orange-500/15 p-2">
+            <AlertTriangle className="text-orange-400" size={24} />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-white">
             Start Impersonation
           </h2>
         </div>
 
         {/* Monitoring Warning */}
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-md p-3 mb-4">
-          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+        <div className="mb-4 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
+          <p className="text-sm font-medium text-amber-200">
             This impersonation session will be fully monitored and logged for
             compliance purposes
           </p>
         </div>
 
         {/* Target User Info */}
-        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3 mb-4">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <div className="mb-4 rounded-md border border-white/10 bg-[#2a2a27] p-3">
+          <h3 className="mb-2 text-sm font-medium text-gray-200">
             Target User
           </h3>
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500 dark:text-gray-400">Email:</span>
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="text-gray-400">Email:</span>
+              <span className="font-medium text-white">
                 {targetUser.email}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500 dark:text-gray-400">User ID:</span>
-              <span className="font-mono text-gray-900 dark:text-white">
+              <span className="text-gray-400">User ID:</span>
+              <span className="font-mono text-white">
                 {targetUser.userId}
               </span>
             </div>
@@ -142,44 +142,44 @@ export function ConsentModal({
 
         {/* Access Mode Selector */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="mb-2 block text-sm font-medium text-gray-200">
             Access Mode
           </label>
           <div className="space-y-2">
-            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-white/10 bg-[#2a2a27] p-3 transition-colors hover:bg-white/5">
               <input
                 type="radio"
                 name="accessMode"
                 value="read_only"
                 checked={accessMode === "read_only"}
                 onChange={() => setAccessMode("read_only")}
-                className="text-blue-600 focus:ring-blue-500"
+                className="accent-[#b7cba6] focus:ring-[#b7cba6]/50"
               />
               <Eye size={18} className="text-blue-600" />
               <div>
-                <span className="font-medium text-sm text-gray-900 dark:text-white">
+                <span className="text-sm font-medium text-white">
                   Read-Only
                 </span>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-400">
                   Observe only — all write operations will be blocked
                 </p>
               </div>
             </label>
-            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <label className="flex cursor-pointer items-center gap-3 rounded-md border border-white/10 bg-[#2a2a27] p-3 transition-colors hover:bg-white/5">
               <input
                 type="radio"
                 name="accessMode"
                 value="full_access"
                 checked={accessMode === "full_access"}
                 onChange={() => setAccessMode("full_access")}
-                className="text-blue-600 focus:ring-blue-500"
+                className="accent-[#b7cba6] focus:ring-[#b7cba6]/50"
               />
-              <Shield size={18} className="text-orange-600" />
+              <Shield size={18} className="text-orange-400" />
               <div>
-                <span className="font-medium text-sm text-gray-900 dark:text-white">
+                <span className="text-sm font-medium text-white">
                   Full Access
                 </span>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-400">
                   Can perform non-destructive actions as this user
                 </p>
               </div>
@@ -189,7 +189,7 @@ export function ConsentModal({
 
         {/* Error Display */}
         {error && (
-          <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded mb-4">
+          <div className="mb-4 rounded bg-red-500/10 p-2 text-sm text-red-400">
             {error}
           </div>
         )}
@@ -199,7 +199,7 @@ export function ConsentModal({
           <button
             type="button"
             onClick={handleCancel}
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="flex-1 rounded-md border border-white/15 px-4 py-2 text-gray-200 transition-colors hover:bg-white/5"
           >
             Cancel
           </button>
@@ -207,7 +207,7 @@ export function ConsentModal({
             type="button"
             onClick={handleConfirm}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-orange-400 disabled:cursor-not-allowed"
+            className="flex-1 rounded-md bg-orange-600 px-4 py-2 font-medium text-white transition-colors hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "Starting..." : "Confirm Impersonation"}
           </button>

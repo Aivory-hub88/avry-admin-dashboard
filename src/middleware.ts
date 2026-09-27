@@ -22,6 +22,10 @@ export function middleware(request: NextRequest) {
     pathname === "/signin" ||
     pathname === "/login" ||
     pathname === "/signup" ||
+    // Password reset is reachable only by someone who is locked out, so it
+    // must never be gated behind the session it exists to restore.
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/error-")

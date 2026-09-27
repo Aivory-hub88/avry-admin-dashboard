@@ -3,7 +3,7 @@ import { bffFetch } from "@/lib/bff";
 import React, { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
-export type RecordType = "user" | "agent" | "workflow" | "log" | "integration" | "diagnostic" | "blueprint" | "roadmap" | "impersonation_session";
+export type RecordType = "user" | "agent" | "workflow" | "log" | "integration" | "diagnostic" | "blueprint" | "roadmap" | "impersonation_session" | "payment";
 
 interface DetailViewProps {
   title: string;
@@ -11,9 +11,14 @@ interface DetailViewProps {
   recordId: string;
   data: Record<string, unknown>;
   onClose: () => void;
+  /**
+   * Record-specific controls rendered above the field list — e.g. approve/reject
+   * for a manual payment. Optional and additive: existing callers are unaffected.
+   */
+  actions?: React.ReactNode;
 }
 
-export default function DetailView({ title, recordType, recordId, data, onClose }: DetailViewProps) {
+export default function DetailView({ title, recordType, recordId, data, onClose, actions }: DetailViewProps) {
   const { role, user } = useAuth();
   const [reportNote, setReportNote] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
@@ -80,6 +85,7 @@ export default function DetailView({ title, recordType, recordId, data, onClose 
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
+          {actions && <div className="mb-5">{actions}</div>}
           <dl className="space-y-4">
             {Object.entries(data).map(([key, value]) => (
               <div key={key} className="grid grid-cols-3 gap-4">

@@ -1,4 +1,5 @@
 "use client";
+import NotificationDropdown from "@/components/header/NotificationDropdown";
 import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
@@ -56,8 +57,11 @@ const AppHeader: React.FC = () => {
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Right side — user dropdown only */}
-      <UserDropdown />
+      {/* Right side — system notifications, then the user dropdown */}
+      <div className="flex items-center gap-3">
+        <NotificationDropdown />
+        <UserDropdown />
+      </div>
     </header>
   );
 };
