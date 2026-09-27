@@ -2,7 +2,8 @@
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
-import { setCookie, deleteCookie } from "@/lib/cookies";
+import { deleteCookie } from "@/lib/cookies";
+import { refreshSession, storeSession, safeNextPath } from "@/lib/sessionRefresh";
 import { bffFetch } from "@/lib/bff";
 import { decodeJwt } from "@/lib/jwt";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,6 +17,31 @@ function SignInFormInner() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  // True while we try to resume the session before showing the form.
+  const [resuming, setResuming] = useState(true);
+
+  // Sent here because the access token ran out? The refresh token (cookie
+  // from this form, or the landing's localStorage session) is usually still
+  // good, so resume silently and go back instead of asking for a password.
+  useEffect(() => {
+    let cancelled = false;
+    const flagged = searchParams.get("error");
+    if (flagged) {
+      setResuming(false);
+      return;
+    }
+    refreshSession().then((result) => {
+      if (cancelled) return;
+      if (result === "refreshed") {
+        router.replace(safeNextPath(searchParams.get("next")));
+      } else {
+        setResuming(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [router, searchParams]);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -76,24 +102,24 @@ function SignInFormInner() {
         deleteCookie(name, { domain: ".aivory.id" });
       }
 
-      setCookie("aivory_access_token", access_token, {
-        maxAge: 3600,
-        path: "/",
-        sameSite: "Lax",
-      });
-      setCookie("aivory_refresh_token", refresh_token, { 
-        maxAge: 604800,
-        path: "/",
-        sameSite: "Lax",
-      });
+      // Cookie lifetimes follow the token itself (see lib/sessionRefresh).
+      storeSession(access_token, refresh_token);
 
-      router.push("/dashboard");
+      router.push(safeNextPath(searchParams.get("next")));
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (resuming) {
+    return (
+      <div className="flex flex-col flex-1 lg:w-1/2 w-full items-center justify-center">
+        <p className="text-sm text-gray-500 dark:text-gray-400">Resuming your session…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">

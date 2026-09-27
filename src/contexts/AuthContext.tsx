@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getCookie, deleteCookie } from "@/lib/cookies";
+import { deleteCookie } from "@/lib/cookies";
+import { getRefreshToken, clearLandingSession } from "@/lib/sessionRefresh";
 import { bffFetch } from "@/lib/bff";
 
 interface AuthUser {
@@ -65,7 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = async () => {
-    const refreshToken = getCookie("aivory_refresh_token");
+    // Cookie or the landing's session: whichever this login left behind, so
+    // the backend revokes it either way.
+    const refreshToken = getRefreshToken();
     try {
       await bffFetch("/api/auth/logout", {
         method: "POST",
@@ -81,6 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         deleteCookie(name);
         deleteCookie(name, { domain: ".aivory.id" });
       }
+      // Otherwise the sign-in page would resume the session we just ended.
+      clearLandingSession();
       setUser(null);
       window.location.href = "/admin/signin";
     }

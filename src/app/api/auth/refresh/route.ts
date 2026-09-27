@@ -30,9 +30,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (!backendRes.ok) {
+      // Only a real rejection ends the session; a backend 5xx must not log
+      // the admin out (the client treats 401 as "session gone").
+      const rejected = backendRes.status === 401 || backendRes.status === 400;
       return NextResponse.json(
-        { error: "Failed to refresh session" },
-        { status: 401 }
+        { error: rejected ? "Failed to refresh session" : "Service unavailable" },
+        { status: rejected ? 401 : 503 }
       );
     }
 
