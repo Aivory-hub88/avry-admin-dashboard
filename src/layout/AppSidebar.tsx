@@ -25,6 +25,7 @@ const allNavItems = [
   { name: "Overview", path: "/dashboard", icon: <GridIcon />, superadminOnly: false },
   { name: "Users & Credits", path: "/dashboard/users", icon: <UserCircleIcon />, superadminOnly: false },
   { name: "Payments", path: "/dashboard/payments", icon: <TableIcon />, superadminOnly: false },
+  { name: "Promo Codes", path: "/dashboard/promo-codes", icon: <TaskIcon />, superadminOnly: false },
   { name: "Currency", path: "/dashboard/currency", icon: <PieChartIcon />, superadminOnly: false },
   { name: "Agent Activity", path: "/dashboard/agents", icon: <BoxCubeIcon />, superadminOnly: false },
   { name: "Agent Management", path: "/dashboard/agent-management", icon: <BoxCubeIcon />, superadminOnly: false },
