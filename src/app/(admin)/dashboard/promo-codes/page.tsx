@@ -58,11 +58,50 @@ const STATE_STYLES: Record<CodeState, string> = {
   exhausted: "bg-orange-500/20 text-orange-300",
 };
 
+const PERCENT_PRESETS = [10, 20, 30, 50];
+const COUNT_PRESETS = [1, 10, 20, 30, 50, 100];
+
 const inputClass =
   "w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50";
 
 const selectClass =
   "rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50";
+
+function PresetChips({
+  options,
+  current,
+  onPick,
+  suffix = "",
+}: {
+  options: number[];
+  current: string;
+  onPick: (value: string) => void;
+  suffix?: string;
+}) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {options.map((n) => {
+        const active = current === String(n);
+        return (
+          <button
+            key={n}
+            type="button"
+            onClick={() => onPick(String(n))}
+            aria-pressed={active}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+              active
+                ? "border-[#b7cba6] bg-[#b7cba6]/20 text-[#b7cba6]"
+                : "border-white/[0.1] text-gray-300 hover:bg-white/5"
+            }`}
+          >
+            {n}
+            {suffix}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function stateOf(c: PromoCode): CodeState {
   if (!c.active) return "inactive";
@@ -397,6 +436,14 @@ export default function PromoCodesPage() {
               placeholder={discountType === "percent" ? "20" : "5.00"}
               className={`${inputClass} mt-1`}
             />
+            {discountType === "percent" && (
+              <PresetChips
+                options={PERCENT_PRESETS}
+                current={discountValue}
+                onPick={setDiscountValue}
+                suffix="%"
+              />
+            )}
           </label>
 
           <label className="text-xs text-gray-400">
@@ -409,6 +456,7 @@ export default function PromoCodesPage() {
               onChange={(e) => setCount(e.target.value)}
               className={`${inputClass} mt-1`}
             />
+            <PresetChips options={COUNT_PRESETS} current={count} onPick={setCount} />
           </label>
 
           <label className="text-xs text-gray-400">
