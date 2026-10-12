@@ -34,6 +34,8 @@ interface ServiceOrder {
   grant_error?: string | null;
   created_at?: string;
   updated_at?: string;
+  promo_code?: string | null;
+  discount_usd?: number | null;
 }
 
 function mapOrder(o: ServiceOrder) {
@@ -59,6 +61,8 @@ function mapOrder(o: ServiceOrder) {
     grantError: o.grant_error ?? null,
     createdAt: o.created_at ?? "",
     updatedAt: o.updated_at ?? "",
+    promoCode: o.promo_code ?? "",
+    discountUsd: typeof o.discount_usd === "number" ? o.discount_usd : 0,
   };
 }
 

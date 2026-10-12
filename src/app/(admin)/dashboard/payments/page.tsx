@@ -34,6 +34,8 @@ interface Payment extends Record<string, unknown> {
   grantError: string | null;
   createdAt: string;
   updatedAt: string;
+  promoCode: string;
+  discountUsd: number;
 }
 
 interface Summary {
@@ -256,6 +258,11 @@ export default function PaymentsPage() {
         <div className="whitespace-nowrap">
           <div className="font-medium text-gray-100">{formatIdr(row.amountIdr)}</div>
           <div className="text-[11px] text-gray-500">${row.amount.toFixed(2)}</div>
+          {row.promoCode && (
+            <div className="font-mono text-[10px] text-[#b7cba6]">
+              {row.promoCode} −${row.discountUsd.toFixed(2)}
+            </div>
+          )}
         </div>
       ),
     },
@@ -501,6 +508,12 @@ export default function PaymentsPage() {
             Product: selectedPayment.product,
             "Amount (IDR)": formatIdr(selectedPayment.amountIdr),
             "Amount (USD)": `$${selectedPayment.amount.toFixed(2)}`,
+            ...(selectedPayment.promoCode
+              ? {
+                  "Promo code": selectedPayment.promoCode,
+                  "Discount (USD)": `−$${selectedPayment.discountUsd.toFixed(2)}`,
+                }
+              : {}),
             "Rate charged": selectedPayment.usdIdrRate
               ? `1 USD = Rp ${selectedPayment.usdIdrRate.toLocaleString("id-ID")}`
               : "—",
