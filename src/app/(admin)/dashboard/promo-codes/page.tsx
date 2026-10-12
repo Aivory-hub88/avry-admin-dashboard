@@ -33,8 +33,8 @@ type CodeState = "active" | "inactive" | "expired" | "exhausted";
 
 const PAGE_SIZE = 25;
 
+// Empty selection means "every discountable product".
 const APPLIES_TO = [
-  { value: "", label: "All products" },
   { value: "operational", label: "Operational plan" },
   { value: "business", label: "Business plan" },
   { value: "ai_snapshot", label: "Business Operations Assessment" },
@@ -136,7 +136,7 @@ export default function PromoCodesPage() {
   const [maxRedemptions, setMaxRedemptions] = useState("");
   const [perUserLimit, setPerUserLimit] = useState("1");
   const [expiresOn, setExpiresOn] = useState("");
-  const [appliesTo, setAppliesTo] = useState("");
+  const [appliesTo, setAppliesTo] = useState<string[]>([]);
   const [campaign, setCampaign] = useState("");
   const [note, setNote] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -217,7 +217,7 @@ export default function PromoCodesPage() {
           perUserLimit: parseInt(perUserLimit, 10) || 1,
           // End of the chosen day in Jakarta time, where the customers are.
           expiresAt: expiresOn ? `${expiresOn}T23:59:59+07:00` : null,
-          products: appliesTo ? [appliesTo] : null,
+          products: appliesTo.length ? appliesTo : null,
           campaign: campaign.trim() || undefined,
           note: note.trim() || undefined,
         }),
@@ -292,7 +292,9 @@ export default function PromoCodesPage() {
       render: (row) => (
         <span className="text-gray-400">
           {row.products?.length
-            ? row.products.map((p) => p.replace(/_/g, " ").trim()).join(", ")
+            ? row.products
+                .map((p) => APPLIES_TO.find((o) => o.value === p)?.label ?? p.replace(/_/g, " ").trim())
+                .join(", ")
             : "All products"}
         </span>
       ),
@@ -459,20 +461,48 @@ export default function PromoCodesPage() {
             <PresetChips options={COUNT_PRESETS} current={count} onPick={setCount} />
           </label>
 
-          <label className="text-xs text-gray-400">
-            Applies to
-            <select
-              value={appliesTo}
-              onChange={(e) => setAppliesTo(e.target.value)}
-              className={`${inputClass} mt-1`}
-            >
-              {APPLIES_TO.map((o) => (
-                <option key={o.value} value={o.value} className="bg-[#2a2a27]">
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="text-xs text-gray-400 sm:col-span-2">
+            Applies to <span className="text-gray-600">(pick one or more)</span>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setAppliesTo([])}
+                aria-pressed={appliesTo.length === 0}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  appliesTo.length === 0
+                    ? "border-[#b7cba6] bg-[#b7cba6]/20 text-[#b7cba6]"
+                    : "border-white/[0.1] text-gray-300 hover:bg-white/5"
+                }`}
+              >
+                All products
+              </button>
+              {APPLIES_TO.map((o) => {
+                const on = appliesTo.includes(o.value);
+                return (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() =>
+                      setAppliesTo((cur) =>
+                        cur.includes(o.value)
+                          ? cur.filter((v) => v !== o.value)
+                          : [...cur, o.value]
+                      )
+                    }
+                    aria-pressed={on}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                      on
+                        ? "border-[#b7cba6] bg-[#b7cba6]/20 text-[#b7cba6]"
+                        : "border-white/[0.1] text-gray-300 hover:bg-white/5"
+                    }`}
+                  >
+                    {on ? "✓ " : ""}
+                    {o.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {countNum === 1 ? (
             <label className="text-xs text-gray-400">
