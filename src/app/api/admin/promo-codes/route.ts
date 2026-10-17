@@ -9,7 +9,7 @@ import { getAccessToken, pickQuery, proxyToService, unauthorized } from "@/lib/b
  * forwards the admin's token and reshapes the payload for the UI.
  */
 
-const FORWARDED = ["search", "campaign", "status", "page", "page_size"] as const;
+const FORWARDED = ["search", "campaign", "status", "affiliate", "page", "page_size"] as const;
 
 interface ServiceCode {
   code: string;
@@ -27,6 +27,13 @@ interface ServiceCode {
   created_at: string | null;
   redeemed: number;
   discount_given_usd: number;
+  affiliate_name: string | null;
+  affiliate_company: string | null;
+  applied_users: number;
+  checkout_users: number;
+  paid_users: number;
+  conversion_rate: number;
+  revenue_usd: number;
 }
 
 function mapCode(c: ServiceCode) {
@@ -46,6 +53,13 @@ function mapCode(c: ServiceCode) {
     createdAt: c.created_at,
     redeemed: c.redeemed ?? 0,
     discountGivenUsd: c.discount_given_usd ?? 0,
+    affiliateName: c.affiliate_name ?? null,
+    affiliateCompany: c.affiliate_company ?? null,
+    appliedUsers: c.applied_users ?? 0,
+    checkoutUsers: c.checkout_users ?? 0,
+    paidUsers: c.paid_users ?? 0,
+    conversionRate: c.conversion_rate ?? 0,
+    revenueUsd: c.revenue_usd ?? 0,
   };
 }
 
@@ -114,6 +128,8 @@ interface GenerateBody {
   products?: string[] | null;
   campaign?: string;
   note?: string;
+  affiliateName?: string;
+  affiliateCompany?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -145,6 +161,8 @@ export async function POST(request: NextRequest) {
       products: body.products?.length ? body.products : undefined,
       campaign: body.campaign || undefined,
       note: body.note || undefined,
+      affiliate_name: body.affiliateName || undefined,
+      affiliate_company: body.affiliateCompany || undefined,
     },
   });
 
