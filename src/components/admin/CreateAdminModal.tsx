@@ -5,6 +5,8 @@ import React, { useState } from "react";
 import { X, Copy, RefreshCw } from "lucide-react";
 import { PasswordStrengthMeter } from "../ui/password-strength-meter/PasswordStrengthMeter";
 import { ALL_MODULES, DEFAULT_DEMO_MODULES, HOME_MODULE_KEY } from "@/lib/demoModules";
+import { DEFAULT_PARTNER_FREE_MONTHS, type PartnerFreeMonths } from "@/lib/partnerAccess";
+import { FreeMonthsPicker } from "./ExtendPartnerAccessModal";
 
 interface CreateAdminModalProps {
   isOpen: boolean;
@@ -13,9 +15,16 @@ interface CreateAdminModalProps {
   /**
    * Which kind of account to create. "admin" (default) creates a dashboard
    * admin; "demo" creates a limited product user that can only access the
-   * Diagnostic, Blueprint, Roadmap and AI Console modules.
+   * Diagnostic, Blueprint, Roadmap and AI Console modules. "partner" creates
+   * a distributor-partner login: every user-dashboard feature at the
+   * Enterprise tier, except Aivory's own self-hosted n8n instance.
    */
-  accountType?: "admin" | "demo";
+  accountType?: "admin" | "demo" | "partner";
+  /**
+   * Partner only: pre-fills and locks the company, for adding another login
+   * email to a distributor that already has one.
+   */
+  partnerCompanyName?: string;
 }
 
 export function CreateAdminModal({
@@ -23,11 +32,16 @@ export function CreateAdminModal({
   onClose,
   onSuccess,
   accountType = "admin",
+  partnerCompanyName,
 }: CreateAdminModalProps) {
   const isDemo = accountType === "demo";
-  const entityLabel = isDemo ? "Demo User" : "Admin";
+  const isPartner = accountType === "partner";
+  const isAddingPartnerEmail = isPartner && !!partnerCompanyName;
+  const entityLabel = isDemo ? "Demo User" : isPartner ? "Partner" : "Admin";
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState(partnerCompanyName ?? "");
+  const [freeMonths, setFreeMonths] = useState<PartnerFreeMonths>(DEFAULT_PARTNER_FREE_MONTHS);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [autoGeneratePassword, setAutoGeneratePassword] = useState(false);
@@ -71,6 +85,10 @@ export function CreateAdminModal({
   const validateForm = (): string | null => {
     if (!email || !fullName) {
       return "Email and full name are required";
+    }
+
+    if (isPartner && !companyName.trim()) {
+      return "Distributor company name is required";
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -139,6 +157,7 @@ export function CreateAdminModal({
           accountType,
           autoGeneratePassword: false, // We send the generated password manually
           ...(isDemo ? { allowedModules: selectedModules } : {}),
+          ...(isPartner ? { companyName: companyName.trim(), freeMonths } : {}),
         }),
       });
 
@@ -163,6 +182,8 @@ export function CreateAdminModal({
   const handleClose = () => {
     setEmail("");
     setFullName("");
+    setCompanyName(partnerCompanyName ?? "");
+    setFreeMonths(DEFAULT_PARTNER_FREE_MONTHS);
     setPassword("");
     setConfirmPassword("");
     setAutoGeneratePassword(false);
@@ -186,7 +207,13 @@ export function CreateAdminModal({
         </button>
 
         <h2 className="text-xl font-semibold text-white mb-4">
-          {isDemo ? "Create Demo User" : "Create New Admin"}
+          {isDemo
+            ? "Create Demo User"
+            : isAddingPartnerEmail
+              ? "Add Partner Email"
+              : isPartner
+                ? "Create Distributor Partner"
+                : "Create New Admin"}
         </h2>
 
         {success ? (
@@ -237,6 +264,30 @@ export function CreateAdminModal({
                     );
                   })}
                 </div>
+              </div>
+            )}
+            {isPartner && (
+              <div className="space-y-2">
+                <div className="rounded-md bg-[#b7cba6]/10 border border-[#b7cba6]/30 px-3 py-2 text-xs text-[#b7cba6]">
+                  {isAddingPartnerEmail
+                    ? "Adds another login email for this distributor. It gets its own password and its own free period."
+                    : "Partner accounts can use every user-dashboard feature at the Enterprise tier, free for the duration you pick. The only exception is Aivory's own self-hosted n8n instance — partners deploy workflows to their own n8n. When the free period ends they continue on a paid subscription and can buy Intelligence Credits like any customer, or you extend the free period from the row menu."}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-200 mb-1">
+                    Distributor Company
+                  </label>
+                  <input
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    disabled={isAddingPartnerEmail}
+                    className="w-full px-3 py-2 bg-[#2a2a27] border border-white/10 rounded-md text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#b7cba6]/50 focus:border-[#b7cba6]/50 disabled:opacity-60 disabled:cursor-not-allowed"
+                    placeholder="PT Distributor Nusantara"
+                    required
+                  />
+                </div>
+                <FreeMonthsPicker value={freeMonths} onChange={setFreeMonths} />
               </div>
             )}
             <div>
@@ -370,7 +421,11 @@ export function CreateAdminModal({
                 disabled={loading}
                 className="flex-1 px-4 py-2 bg-[#b7cba6] text-[#14140f] font-medium rounded-md hover:bg-[#c8dab8] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {loading ? "Creating..." : `Create ${entityLabel}`}
+                {loading
+                  ? "Creating..."
+                  : isAddingPartnerEmail
+                    ? "Add Email"
+                    : `Create ${entityLabel}`}
               </button>
             </div>
           </form>

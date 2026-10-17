@@ -32,7 +32,7 @@ export default function AdminAccountsPage() {
   
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createType, setCreateType] = useState<"admin" | "demo">("admin");
+  const [createType, setCreateType] = useState<"admin" | "demo" | "partner">("admin");
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
 
@@ -115,6 +115,15 @@ export default function AdminAccountsPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
+                setCreateType("partner");
+                setShowCreateModal(true);
+              }}
+              className="rounded-lg bg-[#b7cba6]/15 border border-[#b7cba6]/30 px-4 py-2 text-sm font-medium text-[#b7cba6] hover:bg-[#b7cba6]/25 transition-colors"
+            >
+              + Create Partner
+            </button>
+            <button
+              onClick={() => {
                 setCreateType("demo");
                 setShowCreateModal(true);
               }}
@@ -161,7 +170,9 @@ export default function AdminAccountsPage() {
             setSuccessMessage(
               createType === "demo"
                 ? "Demo user created successfully."
-                : "Admin account created successfully."
+                : createType === "partner"
+                  ? "Partner account created successfully."
+                  : "Admin account created successfully."
             );
             setTimeout(() => setSuccessMessage(null), 3000);
           }}

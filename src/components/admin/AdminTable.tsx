@@ -2,11 +2,14 @@
 import { bffFetch } from "@/lib/bff";
 
 import React, { useEffect, useState } from "react";
-import { MoreVertical, Shield, ShieldAlert, FlaskConical, LogOut } from "lucide-react";
+import { MoreVertical, Shield, ShieldAlert, FlaskConical, LogOut, Handshake, MailPlus, CalendarPlus } from "lucide-react";
 import { DeactivateModal } from "./DeactivateModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
 import { ResetPasswordModal } from "./ResetPasswordModal";
 import { EditModulesModal } from "./EditModulesModal";
+import { CreateAdminModal } from "./CreateAdminModal";
+import { ExtendPartnerAccessModal } from "./ExtendPartnerAccessModal";
+import { describePartnerAccess } from "@/lib/partnerAccess";
 
 interface Admin {
   id: string;
@@ -19,6 +22,8 @@ interface Admin {
   ban_duration: string | null;
   email_confirmed_at: string | null;
   allowed_modules: string[] | null;
+  company_name: string | null;
+  partner_expires_at: string | null;
 }
 
 interface AdminTableProps {
@@ -35,6 +40,8 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showModulesModal, setShowModulesModal] = useState(false);
+  const [showAddEmailModal, setShowAddEmailModal] = useState(false);
+  const [showExtendModal, setShowExtendModal] = useState(false);
   const [showMenu, setShowMenu] = useState<string | null>(null);
   const [loggingOutId, setLoggingOutId] = useState<string | null>(null);
   const [logoutError, setLogoutError] = useState("");
@@ -93,6 +100,21 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
   const handleEditModules = (admin: Admin) => {
     setSelectedAdmin(admin);
     setShowModulesModal(true);
+    setShowMenu(null);
+  };
+
+  // A distributor may need more than one login (another staff member, or a
+  // replacement address). Each extra email is its own partner account under
+  // the same company, so it can be deactivated on its own.
+  const handleAddPartnerEmail = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    setShowAddEmailModal(true);
+    setShowMenu(null);
+  };
+
+  const handleExtendPartner = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    setShowExtendModal(true);
     setShowMenu(null);
   };
 
@@ -215,6 +237,8 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                         <ShieldAlert className="text-[#a855f7]" size={16} />
                       ) : admin.account_type === "demo" ? (
                         <FlaskConical className="text-[#f59e0b]" size={16} />
+                      ) : admin.account_type === "partner" ? (
+                        <Handshake className="text-[#14b8a6]" size={16} />
                       ) : (
                         <Shield className="text-[#3b82f6]" size={16} />
                       )}
@@ -222,6 +246,18 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                         {admin.account_type === "demo" ? "Demo User" : admin.account_type}
                       </span>
                     </div>
+                    {admin.account_type === "partner" && admin.company_name && (
+                      <div className="mt-0.5 text-xs text-gray-500">{admin.company_name}</div>
+                    )}
+                    {admin.account_type === "partner" &&
+                      (() => {
+                        const access = describePartnerAccess(admin.partner_expires_at);
+                        return access ? (
+                          <div className={`mt-0.5 text-xs ${access.expired ? "text-red-400" : "text-[#b7cba6]"}`}>
+                            {access.label}
+                          </div>
+                        ) : null;
+                      })()}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-400">
                     {admin.created_by}
@@ -267,6 +303,24 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
                             >
                               Reset Password
                             </button>
+                            {admin.account_type === "partner" && (
+                              <button
+                                onClick={() => handleAddPartnerEmail(admin)}
+                                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-200 hover:bg-white/5 transition-colors"
+                              >
+                                <MailPlus size={14} />
+                                Add Email
+                              </button>
+                            )}
+                            {admin.account_type === "partner" && (
+                              <button
+                                onClick={() => handleExtendPartner(admin)}
+                                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-200 hover:bg-white/5 transition-colors"
+                              >
+                                <CalendarPlus size={14} />
+                                Extend Free Access
+                              </button>
+                            )}
                             {admin.account_type === "demo" && (
                               <button
                                 onClick={() => handleEditModules(admin)}
@@ -357,6 +411,39 @@ export function AdminTable({ isSuperAdmin, refreshTrigger }: AdminTableProps) {
           onSuccess={() => {
             setShowPasswordModal(false);
             setSelectedAdmin(null);
+          }}
+        />
+      )}
+
+      {selectedAdmin && showAddEmailModal && (
+        <CreateAdminModal
+          isOpen={showAddEmailModal}
+          accountType="partner"
+          partnerCompanyName={selectedAdmin.company_name ?? undefined}
+          onClose={() => {
+            setShowAddEmailModal(false);
+            setSelectedAdmin(null);
+          }}
+          onSuccess={() => {
+            setShowAddEmailModal(false);
+            setSelectedAdmin(null);
+            fetchAdmins();
+          }}
+        />
+      )}
+
+      {selectedAdmin && showExtendModal && (
+        <ExtendPartnerAccessModal
+          isOpen={showExtendModal}
+          userId={selectedAdmin.id}
+          userEmail={selectedAdmin.email}
+          expiresAt={selectedAdmin.partner_expires_at}
+          onClose={() => {
+            setShowExtendModal(false);
+            setSelectedAdmin(null);
+          }}
+          onSuccess={() => {
+            fetchAdmins();
           }}
         />
       )}
