@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { queryPrometheus, PrometheusResult } from "@/lib/monitoring";
 import { BASE_PATH } from "@/lib/bff";
+import { accountTypeLabel } from "@/lib/accountLabels";
 
 interface UserUsage {
   userId: string;
@@ -183,7 +184,7 @@ export function UserUsageTable({ selectedUserId }: UserUsageTableProps) {
                         color: u.tier === "paid" ? "#b7cba6" : "#a3a3a0",
                       }}
                     >
-                      {u.tier}
+                      {accountTypeLabel(u.tier)}
                     </span>
                   </td>
                   <td className="py-2.5 text-right font-mono text-xs" style={{ color: "#f7f7f7" }}>

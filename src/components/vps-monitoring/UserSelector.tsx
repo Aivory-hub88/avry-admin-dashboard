@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { fetchMonitoringUsers, MonitoringUser } from "@/lib/monitoring";
+import { accountTypeLabel } from "@/lib/accountLabels";
 
 interface UserSelectorProps {
   selectedUserId: string | null;
@@ -60,7 +61,7 @@ export function UserSelector({ selectedUserId, onUserChange }: UserSelectorProps
         </option>
         {users.map((user) => (
           <option key={user.userId} value={user.userId} style={{ background: "#2a2a27" }}>
-            👤 {user.userId} ({user.tier})
+            👤 {user.userId} ({accountTypeLabel(user.tier)})
           </option>
         ))}
       </select>
