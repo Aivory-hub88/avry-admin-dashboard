@@ -40,6 +40,7 @@ function relativeTime(iso: string): string {
 
 const TYPE_ICON: Record<string, string> = {
   payment_settled: "💰",
+  promo_conversion: "🎟",
 };
 
 export default function NotificationDropdown() {
