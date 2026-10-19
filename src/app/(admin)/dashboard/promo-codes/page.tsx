@@ -64,8 +64,9 @@ type CodeState = "active" | "inactive" | "expired" | "exhausted";
 
 const PAGE_SIZE = 25;
 
-// Empty selection means "every discountable product". Grouped so the monthly
-// subscriptions are recognisable as such. Enterprise is absent because it is
+// Empty selection means "every discountable product". Grouped and named as the
+// marketing site sells them: "Step 2 — Operating Plan" checks out the
+// `operational` / `business` products. Enterprise is absent because it is
 // sales-assisted: there is no self-serve checkout for a code to discount.
 const PRODUCT_GROUPS: {
   label: string;
@@ -73,11 +74,11 @@ const PRODUCT_GROUPS: {
   options: { value: string; label: string }[];
 }[] = [
   {
-    label: "Subscriptions",
-    hint: "monthly — discounts the charge it's used on, renewals are full price",
+    label: "Operating Plan",
+    hint: "subscriptions — discounts the charge it's used on, renewals are full price",
     options: [
-      { value: "operational", label: "Operational plan ($20/mo)" },
-      { value: "business", label: "Business plan ($99/mo)" },
+      { value: "operational", label: "Operational ($20/mo)" },
+      { value: "business", label: "Business ($99/mo)" },
     ],
   },
   {
@@ -745,7 +746,7 @@ export default function PromoCodesPage() {
                 aria-pressed={allSubscriptions}
                 className={chipClass(allSubscriptions)}
               >
-                All subscriptions
+                All Operating Plans
               </button>
             </div>
             {PRODUCT_GROUPS.map((group) => (
