@@ -9,6 +9,7 @@ import WriteGate from "@/components/rbac/WriteGate";
 import { ImpersonateButton } from "@/components/impersonation/ImpersonateButton";
 import { ConsentModal } from "@/components/impersonation/ConsentModal";
 import { ResetPasswordModal } from "@/components/admin/ResetPasswordModal";
+import { NOT_ACTIVATED_LABEL, accountTypeLabel, planLabel } from "@/lib/accountLabels";
 
 interface Payment {
   paymentId: string;
@@ -34,10 +35,10 @@ interface AdminUserView extends Record<string, unknown> {
 
 const ACCOUNT_TYPE_OPTIONS = [
   { value: "all", label: "All Types" },
-  { value: "free", label: "Free" },
-  { value: "snapshot", label: "Snapshot" },
-  { value: "blueprint", label: "Blueprint" },
-  { value: "enterprise", label: "Enterprise" },
+  // `free` is a signup that never paid. There is no free plan.
+  { value: "free", label: "Not activated" },
+  { value: "paid", label: "Customer" },
+  { value: "partner", label: "Partner" },
   { value: "demo", label: "Demo" },
   { value: "superadmin", label: "Superadmin" },
   { value: "admin", label: "Admin" },
@@ -59,9 +60,18 @@ function getColumns(onImpersonate: (user: AdminUserView) => void): Column<AdminU
       key: "accountType",
       header: "Type",
       width: "100px",
-      render: (row) => <span className="capitalize">{row.accountType}</span>,
+      render: (row) => <span>{accountTypeLabel(row.accountType)}</span>,
     },
-    { key: "tier", header: "Tier", width: "90px", render: (row) => <span className="capitalize">{row.tier}</span> },
+    {
+      key: "tier",
+      header: "Plan",
+      width: "110px",
+      render: (row) => (
+        <span className={planLabel(row.tier) === NOT_ACTIVATED_LABEL ? "text-gray-500" : ""}>
+          {planLabel(row.tier)}
+        </span>
+      ),
+    },
     {
       key: "creditsUsed",
       header: "Credits",
@@ -145,12 +155,12 @@ export default function UsersPage() {
     ? {
         "User ID": selectedUser.userId,
         Email: selectedUser.email,
-        "Account Type": selectedUser.accountType,
-        Tier: selectedUser.tier,
+        "Account Type": accountTypeLabel(selectedUser.accountType),
+        Plan: planLabel(selectedUser.tier),
         "Unlocked features": selectedUser.features?.length
           ? selectedUser.features.join(", ")
           : "—",
-        "Tier expires": selectedUser.tierExpiresAt
+        "Plan expires": selectedUser.tierExpiresAt
           ? new Date(selectedUser.tierExpiresAt).toLocaleString()
           : "—",
         "Credit balance":
@@ -356,7 +366,7 @@ export default function UsersPage() {
                       className="flex-1 rounded-lg border border-white/[0.07] bg-[#2a2a27] px-3 py-2 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50"
                     >
                       <option value="">
-                        Currently {selectedUser.accountType} — choose new type…
+                        Currently {accountTypeLabel(selectedUser.accountType)} — choose new type…
                       </option>
                       {ASSIGNABLE_ACCOUNT_TYPES.map((opt) => (
                         <option key={opt.value} value={opt.value}>
