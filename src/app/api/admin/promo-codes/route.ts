@@ -16,6 +16,8 @@ interface ServiceCode {
   discount_type: "percent" | "fixed_usd";
   discount_value: number;
   max_redemptions: number | null;
+  max_customers: number | null;
+  customers_used: number;
   per_user_limit: number;
   valid_from: string | null;
   expires_at: string | null;
@@ -29,6 +31,8 @@ interface ServiceCode {
   discount_given_usd: number;
   affiliate_name: string | null;
   affiliate_company: string | null;
+  affiliate_partner_id: string | null;
+  created_by_email: string | null;
   applied_users: number;
   checkout_users: number;
   paid_users: number;
@@ -42,6 +46,8 @@ function mapCode(c: ServiceCode) {
     discountType: c.discount_type,
     discountValue: c.discount_value,
     maxRedemptions: c.max_redemptions,
+    maxCustomers: c.max_customers ?? null,
+    customersUsed: c.customers_used ?? 0,
     perUserLimit: c.per_user_limit,
     validFrom: c.valid_from,
     expiresAt: c.expires_at,
@@ -55,6 +61,8 @@ function mapCode(c: ServiceCode) {
     discountGivenUsd: c.discount_given_usd ?? 0,
     affiliateName: c.affiliate_name ?? null,
     affiliateCompany: c.affiliate_company ?? null,
+    affiliatePartnerId: c.affiliate_partner_id ?? null,
+    createdByEmail: c.created_by_email ?? null,
     appliedUsers: c.applied_users ?? 0,
     checkoutUsers: c.checkout_users ?? 0,
     paidUsers: c.paid_users ?? 0,
@@ -122,6 +130,7 @@ interface GenerateBody {
   code?: string;
   prefix?: string;
   maxRedemptions?: number | null;
+  maxCustomers?: number | null;
   perUserLimit?: number;
   validFrom?: string | null;
   expiresAt?: string | null;
@@ -130,6 +139,7 @@ interface GenerateBody {
   note?: string;
   affiliateName?: string;
   affiliateCompany?: string;
+  affiliatePartnerId?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -155,6 +165,7 @@ export async function POST(request: NextRequest) {
       code: body.code || undefined,
       prefix: body.prefix || undefined,
       max_redemptions: body.maxRedemptions ?? undefined,
+      max_customers: body.maxCustomers ?? undefined,
       per_user_limit: body.perUserLimit ?? 1,
       valid_from: body.validFrom || undefined,
       expires_at: body.expiresAt || undefined,
@@ -163,6 +174,7 @@ export async function POST(request: NextRequest) {
       note: body.note || undefined,
       affiliate_name: body.affiliateName || undefined,
       affiliate_company: body.affiliateCompany || undefined,
+      affiliate_partner_id: body.affiliatePartnerId || undefined,
     },
   });
 
@@ -177,6 +189,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const data = result.data as { created?: number; codes?: string[] } | null;
-  return NextResponse.json({ created: data?.created ?? 0, codes: data?.codes ?? [] });
+  const data = result.data as {
+    created?: number;
+    codes?: string[];
+    affiliate_company?: string | null;
+  } | null;
+  return NextResponse.json({
+    created: data?.created ?? 0,
+    codes: data?.codes ?? [],
+    // The spelling the service filed the codes under (see affiliateKey).
+    affiliateCompany: data?.affiliate_company ?? null,
+  });
 }

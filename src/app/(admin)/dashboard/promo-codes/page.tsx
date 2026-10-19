@@ -4,7 +4,7 @@ import DataTable, { Column } from "@/components/shared/DataTable";
 import ErrorState from "@/components/shared/ErrorState";
 import ExportButton from "@/components/shared/ExportButton";
 import { bffFetch } from "@/lib/bff";
-import { affiliatePrefix } from "@/lib/promoAffiliate";
+import { affiliateKey, affiliatePrefix } from "@/lib/promoAffiliate";
 
 /**
  * Promo codes: generate them, see how they are being used, switch them off.
@@ -18,6 +18,8 @@ interface PromoCode extends Record<string, unknown> {
   discountType: "percent" | "fixed_usd";
   discountValue: number;
   maxRedemptions: number | null;
+  maxCustomers: number | null;
+  customersUsed: number;
   perUserLimit: number;
   validFrom: string | null;
   expiresAt: string | null;
@@ -28,6 +30,9 @@ interface PromoCode extends Record<string, unknown> {
   createdAt: string | null;
   redeemed: number;
   discountGivenUsd: number;
+  createdByEmail: string | null;
+  createdBy?: string | null;
+  affiliatePartnerId: string | null;
   affiliateName: string | null;
   affiliateCompany: string | null;
   appliedUsers: number;
@@ -41,6 +46,7 @@ interface AffiliateRow {
   affiliate: string;
   company: string | null;
   names: string | null;
+  partnerId: string | null;
   codes: number;
   appliedUsers: number;
   checkoutUsers: number;
@@ -125,6 +131,7 @@ const STATE_STYLES: Record<CodeState, string> = {
 
 const PERCENT_PRESETS = [10, 20, 30, 50];
 const COUNT_PRESETS = [1, 10, 20, 30, 50, 100];
+const CUSTOMER_PRESETS = [10, 20, 30, 50, 100];
 
 const inputClass =
   "w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50";
@@ -172,6 +179,7 @@ function stateOf(c: PromoCode): CodeState {
   if (!c.active) return "inactive";
   if (c.expiresAt && new Date(c.expiresAt).getTime() <= Date.now()) return "expired";
   if (c.maxRedemptions !== null && c.redeemed >= c.maxRedemptions) return "exhausted";
+  if (c.maxCustomers !== null && c.customersUsed >= c.maxCustomers) return "exhausted";
   return "active";
 }
 
@@ -197,7 +205,14 @@ function Funnel({ applied, checkout, paid }: { applied: number; checkout: number
   );
 }
 
-function LeadsModal({ code, onClose }: { code: string; onClose: () => void }) {
+/** A known affiliate to suggest: a partner account, or one used on a code before. */
+interface AffiliateOption {
+  name: string;
+  partnerId: string | null;
+}
+
+function LeadsModal({ row, onClose }: { row: PromoCode; onClose: () => void }) {
+  const code = row.code;
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -230,7 +245,23 @@ function LeadsModal({ code, onClose }: { code: string; onClose: () => void }) {
           ✕
         </button>
         <h2 className="text-lg font-semibold text-white">Leads</h2>
-        <p className="mb-4 font-mono text-sm text-gray-400">{code}</p>
+        <p className="font-mono text-sm text-gray-400">{code}</p>
+        <dl className="mb-4 mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+          <dt className="text-gray-500">Issued to</dt>
+          <dd className="text-gray-200">
+            {[row.affiliateCompany, row.affiliateName].filter(Boolean).join(" · ") || "—"}
+            {row.affiliatePartnerId && (
+              <span className="ml-2 rounded-full bg-[#b7cba6]/15 px-2 py-0.5 text-[10px] text-[#b7cba6]">
+                Partner account
+              </span>
+            )}
+          </dd>
+          <dt className="text-gray-500">Created by</dt>
+          <dd className="text-gray-200">
+            {row.createdByEmail ?? row.createdBy ?? "—"}
+            {row.createdAt ? ` on ${formatDate(row.createdAt)}` : ""}
+          </dd>
+        </dl>
         {error ? (
           <p className="text-sm text-red-300">{error}</p>
         ) : leads === null ? (
@@ -296,7 +327,10 @@ export default function PromoCodesPage() {
   const [campaignFilter, setCampaignFilter] = useState("all");
   const [affiliateFilter, setAffiliateFilter] = useState("all");
   const [affiliates, setAffiliates] = useState<AffiliateRow[]>([]);
-  const [leadsCode, setLeadsCode] = useState<string | null>(null);
+  const [leadsRow, setLeadsRow] = useState<PromoCode | null>(null);
+  // Distributor partner accounts, so a code can be linked to the partner
+  // rather than to a typed name.
+  const [partners, setPartners] = useState<AffiliateOption[]>([]);
 
   // Generate form
   const [discountType, setDiscountType] = useState<"percent" | "fixed_usd">("percent");
@@ -304,7 +338,9 @@ export default function PromoCodesPage() {
   const [count, setCount] = useState("1");
   const [customCode, setCustomCode] = useState("");
   const [prefix, setPrefix] = useState("");
-  const [maxRedemptions, setMaxRedemptions] = useState("");
+  // How many different customers may use each code ('' = unlimited). Replaces
+  // the old "max redemptions" input, which counted uses, not people.
+  const [maxCustomers, setMaxCustomers] = useState("");
   const [perUserLimit, setPerUserLimit] = useState("1");
   const [expiresOn, setExpiresOn] = useState("");
   const [appliesTo, setAppliesTo] = useState<string[]>([]);
@@ -312,6 +348,7 @@ export default function PromoCodesPage() {
   const [note, setNote] = useState("");
   const [affiliateName, setAffiliateName] = useState("");
   const [affiliateCompany, setAffiliateCompany] = useState("");
+  const [affiliatePartnerId, setAffiliatePartnerId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [generated, setGenerated] = useState<string[] | null>(null);
@@ -380,6 +417,51 @@ export default function PromoCodesPage() {
     fetchAffiliates();
   }, [fetchAffiliates]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await bffFetch("/api/admin/admin-accounts");
+        if (!response.ok) return;
+        const data = await response.json();
+        const rows: { id: string; account_type?: string; company_name?: string | null }[] =
+          Array.isArray(data.admins) ? data.admins : [];
+        setPartners(
+          rows
+            .filter((r) => r.account_type === "partner" && r.company_name)
+            .map((r) => ({ name: r.company_name as string, partnerId: r.id }))
+        );
+      } catch {
+        // Suggestions only; typing a company still works.
+      }
+    })();
+  }, []);
+
+  // Partners first (they link the code to the account), then affiliates seen
+  // on earlier codes; one entry per affiliate key.
+  const affiliateOptions = useMemo(() => {
+    const seen = new Map<string, AffiliateOption>();
+    for (const p of partners) {
+      const key = affiliateKey(p.name);
+      if (key && !seen.has(key)) seen.set(key, p);
+    }
+    for (const a of affiliates) {
+      const name = a.company ?? a.affiliate;
+      const key = affiliateKey(name);
+      if (key && !seen.has(key)) seen.set(key, { name, partnerId: a.partnerId });
+    }
+    return [...seen.values()];
+  }, [partners, affiliates]);
+
+  const matchedAffiliate = useMemo(() => {
+    const key = affiliateKey(affiliateCompany);
+    return key ? affiliateOptions.find((o) => affiliateKey(o.name) === key) ?? null : null;
+  }, [affiliateCompany, affiliateOptions]);
+
+  // Typing (or picking) a partner's company links the code to that account.
+  useEffect(() => {
+    setAffiliatePartnerId(matchedAffiliate?.partnerId ?? null);
+  }, [matchedAffiliate]);
+
   // Any filter change invalidates the current page number.
   useEffect(() => {
     setPage(1);
@@ -410,7 +492,7 @@ export default function PromoCodesPage() {
           count: countNum,
           code: usesCustomCode ? customCode.trim() : undefined,
           prefix: usesCustomCode ? undefined : prefix.trim() || undefined,
-          maxRedemptions: maxRedemptions ? parseInt(maxRedemptions, 10) : null,
+          maxCustomers: maxCustomers ? parseInt(maxCustomers, 10) : null,
           perUserLimit: parseInt(perUserLimit, 10) || 1,
           // End of the chosen day in Jakarta time, where the customers are.
           expiresAt: expiresOn ? `${expiresOn}T23:59:59+07:00` : null,
@@ -419,6 +501,7 @@ export default function PromoCodesPage() {
           note: note.trim() || undefined,
           affiliateName: affiliateName.trim() || undefined,
           affiliateCompany: affiliateCompany.trim() || undefined,
+          affiliatePartnerId: affiliatePartnerId ?? undefined,
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -513,6 +596,11 @@ export default function PromoCodesPage() {
             {row.redeemed}
             {row.maxRedemptions !== null ? ` / ${row.maxRedemptions}` : ""}
           </div>
+          {row.maxCustomers !== null && (
+            <div className="text-[11px] text-gray-400">
+              {row.customersUsed} / {row.maxCustomers} customers
+            </div>
+          )}
           {row.discountGivenUsd > 0 && (
             <div className="text-[11px] text-gray-500">
               −${row.discountGivenUsd.toFixed(2)} given
@@ -568,7 +656,7 @@ export default function PromoCodesPage() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setLeadsCode(row.code);
+              setLeadsRow(row);
             }}
             className="rounded-lg border border-white/[0.1] px-3 py-1 text-xs text-gray-300 transition-colors hover:bg-white/5"
           >
@@ -664,10 +752,29 @@ export default function PromoCodesPage() {
             <input
               value={affiliateCompany}
               onChange={(e) => setAffiliateCompany(e.target.value)}
-              placeholder="PT Distributor Nusantara"
+              list="promo-affiliate-options"
+              placeholder="Pick a partner or type a company"
               maxLength={120}
               className={`${inputClass} mt-1`}
             />
+            <datalist id="promo-affiliate-options">
+              {affiliateOptions.map((o) => (
+                <option key={o.name} value={o.name}>
+                  {o.partnerId ? "Partner account" : "Used before"}
+                </option>
+              ))}
+            </datalist>
+            {affiliateCompany.trim() && (
+              <span className="mt-1 block text-[11px]">
+                {matchedAffiliate?.partnerId ? (
+                  <span className="text-[#b7cba6]">Linked to partner account “{matchedAffiliate.name}”</span>
+                ) : matchedAffiliate ? (
+                  <span className="text-gray-400">Filed under existing affiliate “{matchedAffiliate.name}”</span>
+                ) : (
+                  <span className="text-gray-500">New affiliate</span>
+                )}
+              </span>
+            )}
           </label>
 
           <label className="text-xs text-gray-400 lg:col-span-2">
@@ -817,14 +924,16 @@ export default function PromoCodesPage() {
           )}
 
           <label className="text-xs text-gray-400">
-            Max redemptions per code <span className="text-gray-600">(blank = unlimited)</span>
+            How many customers <span className="text-gray-600">(per code, blank = unlimited)</span>
             <input
               type="number"
               min="1"
-              value={maxRedemptions}
-              onChange={(e) => setMaxRedemptions(e.target.value)}
+              value={maxCustomers}
+              onChange={(e) => setMaxCustomers(e.target.value)}
+              placeholder="Unlimited"
               className={`${inputClass} mt-1`}
             />
+            <PresetChips options={CUSTOMER_PRESETS} current={maxCustomers} onPick={setMaxCustomers} />
           </label>
 
           <label className="text-xs text-gray-400">
@@ -952,7 +1061,14 @@ export default function PromoCodesPage() {
                     }`}
                   >
                     <td className="py-2 pr-3">
-                      <div className="text-gray-200">{a.affiliate}</div>
+                      <div className="text-gray-200">
+                        {a.affiliate}
+                        {a.partnerId && (
+                          <span className="ml-2 rounded-full bg-[#b7cba6]/15 px-2 py-0.5 text-[10px] text-[#b7cba6]">
+                            Partner
+                          </span>
+                        )}
+                      </div>
                       {a.company && a.names && (
                         <div className="text-[11px] text-gray-500">{a.names}</div>
                       )}
@@ -978,7 +1094,7 @@ export default function PromoCodesPage() {
         </div>
       )}
 
-      {leadsCode && <LeadsModal code={leadsCode} onClose={() => setLeadsCode(null)} />}
+      {leadsRow && <LeadsModal row={leadsRow} onClose={() => setLeadsRow(null)} />}
 
       <DataTable<PromoCode>
         columns={columns}
