@@ -9,6 +9,17 @@ const ENTITY_WORDS = new Set([
 ]);
 const MAX = 12;
 
+/**
+ * Mirrors `affiliate_key` in avry-payments: two names with the same key are the
+ * same affiliate (case, spacing, punctuation and PT/CV/Tbk ignored). The
+ * service files a retyped name under the spelling already on record.
+ */
+export function affiliateKey(value?: string | null): string {
+  const words = (value ?? "").toUpperCase().match(/[A-Z0-9]+/g) ?? [];
+  const meaningful = words.filter((w) => !ENTITY_WORDS.has(w));
+  return (meaningful.length ? meaningful : words).join("").toLowerCase();
+}
+
 export function affiliatePrefix(name?: string | null, company?: string | null): string {
   for (const source of [company, name]) {
     const words = (source ?? "").toUpperCase().match(/[A-Z0-9]+/g) ?? [];

@@ -31,6 +31,8 @@ interface ServiceCode {
   discount_given_usd: number;
   affiliate_name: string | null;
   affiliate_company: string | null;
+  affiliate_partner_id: string | null;
+  created_by_email: string | null;
   applied_users: number;
   checkout_users: number;
   paid_users: number;
@@ -59,6 +61,8 @@ function mapCode(c: ServiceCode) {
     discountGivenUsd: c.discount_given_usd ?? 0,
     affiliateName: c.affiliate_name ?? null,
     affiliateCompany: c.affiliate_company ?? null,
+    affiliatePartnerId: c.affiliate_partner_id ?? null,
+    createdByEmail: c.created_by_email ?? null,
     appliedUsers: c.applied_users ?? 0,
     checkoutUsers: c.checkout_users ?? 0,
     paidUsers: c.paid_users ?? 0,
@@ -135,6 +139,7 @@ interface GenerateBody {
   note?: string;
   affiliateName?: string;
   affiliateCompany?: string;
+  affiliatePartnerId?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -169,6 +174,7 @@ export async function POST(request: NextRequest) {
       note: body.note || undefined,
       affiliate_name: body.affiliateName || undefined,
       affiliate_company: body.affiliateCompany || undefined,
+      affiliate_partner_id: body.affiliatePartnerId || undefined,
     },
   });
 
@@ -183,6 +189,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const data = result.data as { created?: number; codes?: string[] } | null;
-  return NextResponse.json({ created: data?.created ?? 0, codes: data?.codes ?? [] });
+  const data = result.data as {
+    created?: number;
+    codes?: string[];
+    affiliate_company?: string | null;
+  } | null;
+  return NextResponse.json({
+    created: data?.created ?? 0,
+    codes: data?.codes ?? [],
+    // The spelling the service filed the codes under (see affiliateKey).
+    affiliateCompany: data?.affiliate_company ?? null,
+  });
 }

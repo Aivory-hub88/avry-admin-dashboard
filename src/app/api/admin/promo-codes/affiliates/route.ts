@@ -7,6 +7,7 @@ interface ServiceAffiliate {
   affiliate: string;
   affiliate_company: string | null;
   affiliate_names: string | null;
+  affiliate_partner_id: string | null;
   codes: number;
   applied_users: number;
   checkout_users: number;
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
       affiliate: a.affiliate,
       company: a.affiliate_company,
       names: a.affiliate_names,
+      partnerId: a.affiliate_partner_id ?? null,
       codes: a.codes,
       appliedUsers: a.applied_users,
       checkoutUsers: a.checkout_users,
