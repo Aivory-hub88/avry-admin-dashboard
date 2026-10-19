@@ -18,6 +18,8 @@ interface PromoCode extends Record<string, unknown> {
   discountType: "percent" | "fixed_usd";
   discountValue: number;
   maxRedemptions: number | null;
+  maxCustomers: number | null;
+  customersUsed: number;
   perUserLimit: number;
   validFrom: string | null;
   expiresAt: string | null;
@@ -125,6 +127,7 @@ const STATE_STYLES: Record<CodeState, string> = {
 
 const PERCENT_PRESETS = [10, 20, 30, 50];
 const COUNT_PRESETS = [1, 10, 20, 30, 50, 100];
+const CUSTOMER_PRESETS = [10, 20, 30, 50, 100];
 
 const inputClass =
   "w-full rounded-lg border border-white/[0.07] bg-white/5 px-3 py-2 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#b7cba6]/50";
@@ -172,6 +175,7 @@ function stateOf(c: PromoCode): CodeState {
   if (!c.active) return "inactive";
   if (c.expiresAt && new Date(c.expiresAt).getTime() <= Date.now()) return "expired";
   if (c.maxRedemptions !== null && c.redeemed >= c.maxRedemptions) return "exhausted";
+  if (c.maxCustomers !== null && c.customersUsed >= c.maxCustomers) return "exhausted";
   return "active";
 }
 
@@ -304,7 +308,9 @@ export default function PromoCodesPage() {
   const [count, setCount] = useState("1");
   const [customCode, setCustomCode] = useState("");
   const [prefix, setPrefix] = useState("");
-  const [maxRedemptions, setMaxRedemptions] = useState("");
+  // How many different customers may use each code ('' = unlimited). Replaces
+  // the old "max redemptions" input, which counted uses, not people.
+  const [maxCustomers, setMaxCustomers] = useState("");
   const [perUserLimit, setPerUserLimit] = useState("1");
   const [expiresOn, setExpiresOn] = useState("");
   const [appliesTo, setAppliesTo] = useState<string[]>([]);
@@ -410,7 +416,7 @@ export default function PromoCodesPage() {
           count: countNum,
           code: usesCustomCode ? customCode.trim() : undefined,
           prefix: usesCustomCode ? undefined : prefix.trim() || undefined,
-          maxRedemptions: maxRedemptions ? parseInt(maxRedemptions, 10) : null,
+          maxCustomers: maxCustomers ? parseInt(maxCustomers, 10) : null,
           perUserLimit: parseInt(perUserLimit, 10) || 1,
           // End of the chosen day in Jakarta time, where the customers are.
           expiresAt: expiresOn ? `${expiresOn}T23:59:59+07:00` : null,
@@ -513,6 +519,11 @@ export default function PromoCodesPage() {
             {row.redeemed}
             {row.maxRedemptions !== null ? ` / ${row.maxRedemptions}` : ""}
           </div>
+          {row.maxCustomers !== null && (
+            <div className="text-[11px] text-gray-400">
+              {row.customersUsed} / {row.maxCustomers} customers
+            </div>
+          )}
           {row.discountGivenUsd > 0 && (
             <div className="text-[11px] text-gray-500">
               −${row.discountGivenUsd.toFixed(2)} given
@@ -817,14 +828,16 @@ export default function PromoCodesPage() {
           )}
 
           <label className="text-xs text-gray-400">
-            Max redemptions per code <span className="text-gray-600">(blank = unlimited)</span>
+            How many customers <span className="text-gray-600">(per code, blank = unlimited)</span>
             <input
               type="number"
               min="1"
-              value={maxRedemptions}
-              onChange={(e) => setMaxRedemptions(e.target.value)}
+              value={maxCustomers}
+              onChange={(e) => setMaxCustomers(e.target.value)}
+              placeholder="Unlimited"
               className={`${inputClass} mt-1`}
             />
+            <PresetChips options={CUSTOMER_PRESETS} current={maxCustomers} onPick={setMaxCustomers} />
           </label>
 
           <label className="text-xs text-gray-400">

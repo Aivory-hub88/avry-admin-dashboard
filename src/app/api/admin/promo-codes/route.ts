@@ -16,6 +16,8 @@ interface ServiceCode {
   discount_type: "percent" | "fixed_usd";
   discount_value: number;
   max_redemptions: number | null;
+  max_customers: number | null;
+  customers_used: number;
   per_user_limit: number;
   valid_from: string | null;
   expires_at: string | null;
@@ -42,6 +44,8 @@ function mapCode(c: ServiceCode) {
     discountType: c.discount_type,
     discountValue: c.discount_value,
     maxRedemptions: c.max_redemptions,
+    maxCustomers: c.max_customers ?? null,
+    customersUsed: c.customers_used ?? 0,
     perUserLimit: c.per_user_limit,
     validFrom: c.valid_from,
     expiresAt: c.expires_at,
@@ -122,6 +126,7 @@ interface GenerateBody {
   code?: string;
   prefix?: string;
   maxRedemptions?: number | null;
+  maxCustomers?: number | null;
   perUserLimit?: number;
   validFrom?: string | null;
   expiresAt?: string | null;
@@ -155,6 +160,7 @@ export async function POST(request: NextRequest) {
       code: body.code || undefined,
       prefix: body.prefix || undefined,
       max_redemptions: body.maxRedemptions ?? undefined,
+      max_customers: body.maxCustomers ?? undefined,
       per_user_limit: body.perUserLimit ?? 1,
       valid_from: body.validFrom || undefined,
       expires_at: body.expiresAt || undefined,
