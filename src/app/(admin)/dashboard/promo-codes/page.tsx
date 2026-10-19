@@ -77,8 +77,10 @@ const PRODUCT_GROUPS: {
     label: "Operating Plan",
     hint: "subscriptions — discounts the charge it's used on, renewals are full price",
     options: [
-      { value: "operational", label: "Operational ($20/mo)" },
-      { value: "business", label: "Business ($99/mo)" },
+      { value: "operational", label: "Operational monthly ($20)" },
+      { value: "business", label: "Business monthly ($99)" },
+      { value: "operational_annual", label: "Operational annual ($240)" },
+      { value: "business_annual", label: "Business annual ($1,188)" },
     ],
   },
   {
