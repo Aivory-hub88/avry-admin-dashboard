@@ -129,7 +129,7 @@ const STATE_STYLES: Record<CodeState, string> = {
   exhausted: "bg-orange-500/20 text-orange-300",
 };
 
-const PERCENT_PRESETS = [10, 20, 30, 50];
+const PERCENT_PRESETS = [10, 20, 30, 50, 100];
 const COUNT_PRESETS = [1, 10, 20, 30, 50, 100];
 const CUSTOMER_PRESETS = [10, 20, 30, 50, 100];
 
@@ -184,7 +184,13 @@ function stateOf(c: PromoCode): CodeState {
 }
 
 const discountLabel = (c: PromoCode) =>
-  c.discountType === "percent" ? `${c.discountValue}% off` : `$${c.discountValue.toFixed(2)} off`;
+  c.discountType === "percent"
+    ? `${c.discountValue}% off${c.discountValue >= 100 ? " (free)" : ""}`
+    : `$${c.discountValue.toFixed(2)} off`;
+
+// A date input's value as the end of that day in Jakarta time, where the
+// customers are — the same convention the generate form uses.
+const endOfDayWib = (day: string) => `${day}T23:59:59+07:00`;
 
 const formatDate = (value: string | null) => (value ? value.slice(0, 10) : "—");
 
@@ -314,6 +320,252 @@ function LeadsModal({ row, onClose }: { row: PromoCode; onClose: () => void }) {
   );
 }
 
+/**
+ * Edit a code's dates and limits, or issue a fresh code with the same rules.
+ * The discount, products and affiliate stay fixed: they are what the code's
+ * conversion numbers mean, so changing them means a new code.
+ */
+function EditModal({
+  row,
+  onClose,
+  onChanged,
+}: {
+  row: PromoCode;
+  onClose: () => void;
+  onChanged: () => Promise<void> | void;
+}) {
+  const [expiresOn, setExpiresOn] = useState(row.expiresAt ? row.expiresAt.slice(0, 10) : "");
+  const [maxCustomers, setMaxCustomers] = useState(row.maxCustomers ? String(row.maxCustomers) : "");
+  const [perUserLimit, setPerUserLimit] = useState(String(row.perUserLimit || 1));
+  const [active, setActive] = useState(row.active);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [newCode, setNewCode] = useState("");
+  const [newExpiresOn, setNewExpiresOn] = useState("");
+  const [deactivateOld, setDeactivateOld] = useState(true);
+  const [regenerating, setRegenerating] = useState(false);
+  const [issued, setIssued] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const save = async () => {
+    setError(null);
+    setSaved(false);
+    const changes: Record<string, unknown> = {};
+    const expiresAt = expiresOn ? endOfDayWib(expiresOn) : null;
+    if ((row.expiresAt ? row.expiresAt.slice(0, 10) : "") !== expiresOn) changes.expiresAt = expiresAt;
+    const customers = maxCustomers ? parseInt(maxCustomers, 10) : null;
+    if (customers !== row.maxCustomers) changes.maxCustomers = customers;
+    const perUser = parseInt(perUserLimit, 10) || 1;
+    if (perUser !== row.perUserLimit) changes.perUserLimit = perUser;
+    if (active !== row.active) changes.active = active;
+    if (Object.keys(changes).length === 0) {
+      setSaved(true);
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await bffFetch(`/api/admin/promo-codes/${encodeURIComponent(row.code)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(changes),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || "Could not update this promo code");
+      setSaved(true);
+      await onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update this promo code");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const regenerate = async () => {
+    setError(null);
+    setRegenerating(true);
+    try {
+      const response = await bffFetch(
+        `/api/admin/promo-codes/${encodeURIComponent(row.code)}/regenerate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: newCode.trim() || undefined,
+            expiresAt: newExpiresOn ? endOfDayWib(newExpiresOn) : null,
+            deactivateOld,
+          }),
+        }
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || "Could not generate a new code");
+      setIssued(data.code);
+      setCopied(false);
+      await onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not generate a new code");
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  const copyIssued = async () => {
+    if (!issued) return;
+    try {
+      await navigator.clipboard.writeText(issued);
+      setCopied(true);
+    } catch {
+      setError("Could not copy — select the code and copy it manually.");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="relative max-h-[90vh] w-full max-w-xl overflow-auto rounded-xl border border-white/10 bg-[#1e1e20] p-6 shadow-2xl">
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 text-gray-400 transition-colors hover:text-white"
+        >
+          ✕
+        </button>
+        <h2 className="text-lg font-semibold text-white">Edit code</h2>
+        <p className="font-mono text-sm text-gray-400">
+          {row.code} · {discountLabel(row)}
+        </p>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <label className="text-xs text-gray-400">
+            Expires <span className="text-gray-600">(end of day, WIB)</span>
+            <input
+              type="date"
+              value={expiresOn}
+              onChange={(e) => setExpiresOn(e.target.value)}
+              className={`${inputClass} mt-1 w-full`}
+            />
+            {expiresOn && (
+              <button
+                type="button"
+                onClick={() => setExpiresOn("")}
+                className="mt-1.5 text-[11px] text-gray-500 underline underline-offset-2 hover:text-gray-300"
+              >
+                No end date
+              </button>
+            )}
+          </label>
+
+          <label className="text-xs text-gray-400">
+            Uses per customer
+            <input
+              type="number"
+              min="1"
+              value={perUserLimit}
+              onChange={(e) => setPerUserLimit(e.target.value)}
+              className={`${inputClass} mt-1 w-full`}
+            />
+          </label>
+
+          <label className="text-xs text-gray-400 sm:col-span-2">
+            How many customers <span className="text-gray-600">(blank = unlimited)</span>
+            <input
+              type="number"
+              min="1"
+              value={maxCustomers}
+              onChange={(e) => setMaxCustomers(e.target.value)}
+              placeholder="Unlimited"
+              className={`${inputClass} mt-1 w-full`}
+            />
+            <PresetChips options={CUSTOMER_PRESETS} current={maxCustomers} onPick={setMaxCustomers} />
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-gray-300 sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+              className="h-4 w-4 accent-[#b7cba6]"
+            />
+            Active
+          </label>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="rounded-lg bg-[#b7cba6] px-4 py-2 text-sm font-medium text-[#1e1e20] transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+          {saved && <span className="text-xs text-[#b7cba6]">Saved</span>}
+        </div>
+
+        <div className="mt-6 border-t border-white/10 pt-5">
+          <h3 className="text-sm font-semibold text-white">Generate a new code</h3>
+          <p className="mt-1 text-xs text-gray-500">
+            Same discount, products, limits and affiliate, with usage starting from zero — for
+            example to run a test code again after you have used it.
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <label className="text-xs text-gray-400">
+              Custom code <span className="text-gray-600">(blank = generated)</span>
+              <input
+                value={newCode}
+                onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+                placeholder={`${row.code}-XXXXXXXX`}
+                className={`${inputClass} mt-1 w-full font-mono`}
+              />
+            </label>
+            <label className="text-xs text-gray-400">
+              Expires <span className="text-gray-600">(end of day, WIB)</span>
+              <input
+                type="date"
+                value={newExpiresOn}
+                onChange={(e) => setNewExpiresOn(e.target.value)}
+                className={`${inputClass} mt-1 w-full`}
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-300 sm:col-span-2">
+              <input
+                type="checkbox"
+                checked={deactivateOld}
+                onChange={(e) => setDeactivateOld(e.target.checked)}
+                className="h-4 w-4 accent-[#b7cba6]"
+              />
+              Deactivate {row.code}
+            </label>
+          </div>
+          <button
+            type="button"
+            onClick={regenerate}
+            disabled={regenerating}
+            className="mt-3 rounded-lg border border-white/[0.15] px-4 py-2 text-sm text-gray-200 transition-colors hover:bg-white/5 disabled:opacity-50"
+          >
+            {regenerating ? "Generating…" : "Generate new code"}
+          </button>
+          {issued && (
+            <div className="mt-3 flex items-center gap-3 rounded-lg border border-[#b7cba6]/30 bg-[#b7cba6]/10 px-3 py-2">
+              <span className="font-mono text-sm text-[#b7cba6]">{issued}</span>
+              <button
+                type="button"
+                onClick={copyIssued}
+                className="text-xs text-gray-300 underline underline-offset-2 hover:text-white"
+              >
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {error && <p className="mt-4 text-sm text-red-300">{error}</p>}
+      </div>
+    </div>
+  );
+}
+
 export default function PromoCodesPage() {
   const [codes, setCodes] = useState<PromoCode[]>([]);
   const [campaigns, setCampaigns] = useState<string[]>([]);
@@ -328,6 +580,7 @@ export default function PromoCodesPage() {
   const [affiliateFilter, setAffiliateFilter] = useState("all");
   const [affiliates, setAffiliates] = useState<AffiliateRow[]>([]);
   const [leadsRow, setLeadsRow] = useState<PromoCode | null>(null);
+  const [editRow, setEditRow] = useState<PromoCode | null>(null);
   // Distributor partner accounts, so a code can be linked to the partner
   // rather than to a typed name.
   const [partners, setPartners] = useState<AffiliateOption[]>([]);
@@ -476,8 +729,8 @@ export default function PromoCodesPage() {
       setFormError("Enter a discount greater than zero.");
       return;
     }
-    if (discountType === "percent" && value > 99) {
-      setFormError("A percentage discount can be at most 99%.");
+    if (discountType === "percent" && value > 100) {
+      setFormError("A percentage discount can be at most 100%.");
       return;
     }
 
@@ -495,7 +748,7 @@ export default function PromoCodesPage() {
           maxCustomers: maxCustomers ? parseInt(maxCustomers, 10) : null,
           perUserLimit: parseInt(perUserLimit, 10) || 1,
           // End of the chosen day in Jakarta time, where the customers are.
-          expiresAt: expiresOn ? `${expiresOn}T23:59:59+07:00` : null,
+          expiresAt: expiresOn ? endOfDayWib(expiresOn) : null,
           products: appliesTo.length ? appliesTo : null,
           campaign: campaign.trim() || undefined,
           note: note.trim() || undefined,
@@ -650,7 +903,7 @@ export default function PromoCodesPage() {
     {
       key: "actions",
       header: "",
-      width: "180px",
+      width: "240px",
       render: (row) => (
         <div className="flex gap-1.5">
           <button
@@ -661,6 +914,15 @@ export default function PromoCodesPage() {
             className="rounded-lg border border-white/[0.1] px-3 py-1 text-xs text-gray-300 transition-colors hover:bg-white/5"
           >
             Leads
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditRow(row);
+            }}
+            className="rounded-lg border border-white/[0.1] px-3 py-1 text-xs text-gray-300 transition-colors hover:bg-white/5"
+          >
+            Edit
           </button>
           <button
           onClick={(e) => {
@@ -1095,6 +1357,13 @@ export default function PromoCodesPage() {
       )}
 
       {leadsRow && <LeadsModal row={leadsRow} onClose={() => setLeadsRow(null)} />}
+      {editRow && (
+        <EditModal
+          row={editRow}
+          onClose={() => setEditRow(null)}
+          onChanged={() => Promise.all([fetchCodes(), fetchAffiliates()]).then(() => undefined)}
+        />
+      )}
 
       <DataTable<PromoCode>
         columns={columns}
