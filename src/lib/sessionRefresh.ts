@@ -20,7 +20,7 @@ import { bffFetch } from "@/lib/bff";
 export const ACCESS_COOKIE = "aivory_access_token";
 export const REFRESH_COOKIE = "aivory_refresh_token";
 const LANDING_SESSION_KEY = "aivory_auth";
-const REFRESH_MAX_AGE = 30 * 24 * 3600; // backend refresh sessions are 30 days
+const REFRESH_MAX_AGE = 33 * 24 * 3600; // matches the backend refresh window (33 days, sliding)
 
 function readLandingSession(): Record<string, unknown> | null {
   if (typeof localStorage === "undefined") return null;
